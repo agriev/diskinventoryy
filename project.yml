@@ -1,0 +1,141 @@
+name: DiskInventoryY
+
+options:
+  bundleIdPrefix: io.github.placeholder
+  developmentLanguage: en
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+  groupSortPosition: top
+
+configs:
+  Debug: debug
+  Release: release
+
+configFiles:
+  Debug: Configs/Debug.xcconfig
+  Release: Configs/Release.xcconfig
+
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+
+targets:
+  DiskInventoryY:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: DiskInventoryY
+        excludes:
+          - "**/*.md"
+    resources:
+      - DiskInventoryY/Resources/Assets.xcassets
+      - DiskInventoryY/Resources/Localizable.xcstrings
+    info:
+      path: DiskInventoryY/Resources/Info.plist
+      properties:
+        LSMinimumSystemVersion: "14.0"
+        LSApplicationCategoryType: public.app-category.utilities
+        CFBundleName: $(PRODUCT_NAME)
+        CFBundleDisplayName: DiskInventoryY
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundleExecutable: $(EXECUTABLE_NAME)
+        CFBundlePackageType: APPL
+        NSPrincipalClass: NSApplication
+        NSHumanReadableCopyright: "© 2026 DiskInventoryY contributors. Licensed under GPL-3.0."
+        NSSupportsAutomaticTermination: false
+        NSSupportsSuddenTermination: false
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Folder
+            LSItemContentTypes:
+              - public.folder
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Alternate
+          - CFBundleTypeName: DiskInventoryY Scan
+            LSItemContentTypes:
+              - io.github.placeholder.diskinventoryy.scan
+            CFBundleTypeRole: Editor
+            LSHandlerRank: Owner
+            CFBundleTypeExtensions:
+              - dscan
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: io.github.placeholder.diskinventoryy.scan
+            UTTypeDescription: DiskInventoryY Saved Scan
+            UTTypeConformsTo:
+              - public.json
+              - public.data
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - dscan
+              public.mime-type:
+                - application/json
+    entitlements:
+      path: DiskInventoryY/Resources/DiskInventoryY.entitlements
+      properties:
+        com.apple.security.cs.allow-jit: false
+    settings:
+      base:
+        INFOPLIST_FILE: DiskInventoryY/Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: DiskInventoryY/Resources/DiskInventoryY.entitlements
+        GENERATE_INFOPLIST_FILE: NO
+    scheme:
+      testTargets:
+        - DiskInventoryYTests
+      gatherCoverageData: true
+
+  DiskInventoryYTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - DiskInventoryYTests
+    dependencies:
+      - target: DiskInventoryY
+    settings:
+      base:
+        PRODUCT_NAME: DiskInventoryYTests
+        PRODUCT_MODULE_NAME: DiskInventoryYTests
+        GENERATE_INFOPLIST_FILE: YES
+
+  DiskInventoryYUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - DiskInventoryYUITests
+    dependencies:
+      - target: DiskInventoryY
+    settings:
+      base:
+        PRODUCT_NAME: DiskInventoryYUITests
+        PRODUCT_MODULE_NAME: DiskInventoryYUITests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: DiskInventoryY
+
+schemes:
+  DiskInventoryY:
+    build:
+      targets:
+        DiskInventoryY: all
+        DiskInventoryYTests: [test]
+        DiskInventoryYUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      coverageTargets:
+        - DiskInventoryY
+      targets:
+        - DiskInventoryYTests
+        - DiskInventoryYUITests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

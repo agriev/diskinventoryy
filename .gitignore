@@ -1,0 +1,32 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+**/xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# Swift Package Manager
+.build/
+Packages/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.swiftpm/
+
+# macOS
+.DS_Store
+*.swp
+
+# Release artifacts
+*.dmg
+*.zip
+*.xcarchive
+build/export/
+
+# Tooling
+.swiftlintcache
+.sourcekit-lsp/
+
+# Secrets
+*.p12
+*.cer
+.env
+.env.local

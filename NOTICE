@@ -1,0 +1,24 @@
+DiskInventoryY
+==============
+
+DiskInventoryY is a from-scratch Swift/SwiftUI rewrite of Disk Inventory X
+by Tjark Derlien (https://gitlab.com/tderlien/disk-inventory-x), originally
+released in 2003 under the GNU General Public License.
+
+The squarified treemap layout follows the algorithm popularized by KDirStat
+(Stefan Hundhammer) and described in:
+
+  Bruls, Mark; Huijsen, Kees; van Wijk, Jarke J. (2000). "Squarified Treemaps".
+  Eindhoven University of Technology.
+
+The cushion shading technique is from:
+
+  van Wijk, Jarke J.; van de Wetering, Huub (1999). "Cushion Treemaps:
+  Visualization of Hierarchical Information". Proc. INFOVIS'99.
+
+Acknowledgements
+----------------
+
+- Tjark Derlien — original Disk Inventory X (2003-2019).
+- Stefan Hundhammer — KDirStat layout algorithm.
+- Apple — SwiftUI, AppKit, Foundation, UniformTypeIdentifiers, QuickLook.

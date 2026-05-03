@@ -1,0 +1,619 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		06BAC4C11AF4E9CD5E079B9D /* DiskInventoryYApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F836631D98B9AA07A1DB50 /* DiskInventoryYApp.swift */; };
+		1638E8A3BE6F371FFF7635C2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FA16BE1EAC0A6F479C926698 /* Assets.xcassets */; };
+		2B785AC50F71647AB6D5CCA3 /* SmokeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B194700BBACDAA09241E66B /* SmokeUITests.swift */; };
+		3EA702A0E0490355FC44D64F /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B275DF17430CD95954D8C199 /* Localizable.xcstrings */; };
+		49560B3B2D7B54AB072FA964 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8339C62F7A16B3A6A83C463A /* SmokeTests.swift */; };
+		AE7FEF0F2572749C499295EB /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6806DAB26347009ACD5C4286 /* RootView.swift */; };
+		C8286B1711DED4FE560C9E21 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A7AD5169BA2C0111DE9B33 /* SettingsView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		0643CE43E856487FF0D203CF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0E05AABDA3A68E90DB2E1E86 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = ADD84ECC4457347E3339BB2F;
+			remoteInfo = DiskInventoryY;
+		};
+		D226CD0ED7BAA3261D403D04 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0E05AABDA3A68E90DB2E1E86 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = ADD84ECC4457347E3339BB2F;
+			remoteInfo = DiskInventoryY;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		00F836631D98B9AA07A1DB50 /* DiskInventoryYApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskInventoryYApp.swift; sourceTree = "<group>"; };
+		33A7AD5169BA2C0111DE9B33 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		356D192BD6EEBBBBAF213AB7 /* DiskInventoryY.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DiskInventoryY.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4496F73908D9C71944536EA7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		6806DAB26347009ACD5C4286 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		7B194700BBACDAA09241E66B /* SmokeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeUITests.swift; sourceTree = "<group>"; };
+		7DD422BCA90E244C963C698D /* DiskInventoryYUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DiskInventoryYUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8339C62F7A16B3A6A83C463A /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
+		9DB204C2FBB43C4C63197611 /* DiskInventoryYTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DiskInventoryYTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A468C532525C6AEFC9E2AF23 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		B275DF17430CD95954D8C199 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		D8CD66429A3DA33CB4281D51 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
+		E7EE63A53271A90557E385B7 /* DiskInventoryY.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DiskInventoryY.entitlements; sourceTree = "<group>"; };
+		FA16BE1EAC0A6F479C926698 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		01AE14EEF058705541C3E850 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		0A25AF5D955358EF19A5FF42 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		188FD51491B1761D3C9DED7A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				FA16BE1EAC0A6F479C926698 /* Assets.xcassets */,
+				E7EE63A53271A90557E385B7 /* DiskInventoryY.entitlements */,
+				4496F73908D9C71944536EA7 /* Info.plist */,
+				B275DF17430CD95954D8C199 /* Localizable.xcstrings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		1D56EF0E48F03E860D8C3C75 /* Configs */ = {
+			isa = PBXGroup;
+			children = (
+				A468C532525C6AEFC9E2AF23 /* Debug.xcconfig */,
+				D8CD66429A3DA33CB4281D51 /* Release.xcconfig */,
+			);
+			path = Configs;
+			sourceTree = "<group>";
+		};
+		1EF33E67E0EE91FCB3C325B6 /* DiskInventoryYUITests */ = {
+			isa = PBXGroup;
+			children = (
+				7B194700BBACDAA09241E66B /* SmokeUITests.swift */,
+			);
+			path = DiskInventoryYUITests;
+			sourceTree = "<group>";
+		};
+		238EEAC0B8A0799FE3C57561 /* Outline */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Outline;
+			sourceTree = "<group>";
+		};
+		34FDCB1408FEAA11E4BF7414 /* Sidebar */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Sidebar;
+			sourceTree = "<group>";
+		};
+		3B22761885497B444A80863F /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A32120658139F7D9B71BBA5B /* Content */,
+				842F5A46917C625BAD24FDBF /* Inspector */,
+				238EEAC0B8A0799FE3C57561 /* Outline */,
+				3C61E7D7C044BE852B67F278 /* Progress */,
+				A3F3683FEE4B01BBF8287AFA /* Root */,
+				5C5F01AF44142C042074F476 /* Settings */,
+				34FDCB1408FEAA11E4BF7414 /* Sidebar */,
+				784F9C936F5771A2768F14E1 /* Treemap */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		3C61E7D7C044BE852B67F278 /* Progress */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Progress;
+			sourceTree = "<group>";
+		};
+		41124FFA008908D872420956 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		5C5F01AF44142C042074F476 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				33A7AD5169BA2C0111DE9B33 /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		5C887A08C8779AB2767C5F3C /* DiskInventoryY */ = {
+			isa = PBXGroup;
+			children = (
+				DADF22C983F2E998B133B4D5 /* App */,
+				BD60A3D23EFA87AC2C222DA7 /* Models */,
+				188FD51491B1761D3C9DED7A /* Resources */,
+				0A25AF5D955358EF19A5FF42 /* Services */,
+				41124FFA008908D872420956 /* Utilities */,
+				01AE14EEF058705541C3E850 /* ViewModels */,
+				3B22761885497B444A80863F /* Views */,
+			);
+			path = DiskInventoryY;
+			sourceTree = "<group>";
+		};
+		784F9C936F5771A2768F14E1 /* Treemap */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Treemap;
+			sourceTree = "<group>";
+		};
+		842F5A46917C625BAD24FDBF /* Inspector */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Inspector;
+			sourceTree = "<group>";
+		};
+		A32120658139F7D9B71BBA5B /* Content */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Content;
+			sourceTree = "<group>";
+		};
+		A3F3683FEE4B01BBF8287AFA /* Root */ = {
+			isa = PBXGroup;
+			children = (
+				6806DAB26347009ACD5C4286 /* RootView.swift */,
+			);
+			path = Root;
+			sourceTree = "<group>";
+		};
+		B1827C83B4D9509A04194247 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				356D192BD6EEBBBBAF213AB7 /* DiskInventoryY.app */,
+				9DB204C2FBB43C4C63197611 /* DiskInventoryYTests.xctest */,
+				7DD422BCA90E244C963C698D /* DiskInventoryYUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BD60A3D23EFA87AC2C222DA7 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		DADF22C983F2E998B133B4D5 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				00F836631D98B9AA07A1DB50 /* DiskInventoryYApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		F164D2CD8FB6438A80005609 /* DiskInventoryYTests */ = {
+			isa = PBXGroup;
+			children = (
+				8339C62F7A16B3A6A83C463A /* SmokeTests.swift */,
+			);
+			path = DiskInventoryYTests;
+			sourceTree = "<group>";
+		};
+		F60A7C674B99E3A3BB67D05A = {
+			isa = PBXGroup;
+			children = (
+				1D56EF0E48F03E860D8C3C75 /* Configs */,
+				5C887A08C8779AB2767C5F3C /* DiskInventoryY */,
+				F164D2CD8FB6438A80005609 /* DiskInventoryYTests */,
+				1EF33E67E0EE91FCB3C325B6 /* DiskInventoryYUITests */,
+				B1827C83B4D9509A04194247 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		9887580E5FBBFF35685A1EA6 /* DiskInventoryYUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8A77FEAB9F381E741BD2D38E /* Build configuration list for PBXNativeTarget "DiskInventoryYUITests" */;
+			buildPhases = (
+				01CF7162E79397C98F4C8FB0 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				174FC7B4511ECA0D601FA509 /* PBXTargetDependency */,
+			);
+			name = DiskInventoryYUITests;
+			packageProductDependencies = (
+			);
+			productName = DiskInventoryYUITests;
+			productReference = 7DD422BCA90E244C963C698D /* DiskInventoryYUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		9DAA2C7606E626B6A8A89005 /* DiskInventoryYTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5121E67D472ACA14A397166B /* Build configuration list for PBXNativeTarget "DiskInventoryYTests" */;
+			buildPhases = (
+				672B9143D2B37D090F9522F6 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0EF40034E707EE7A5AE5472E /* PBXTargetDependency */,
+			);
+			name = DiskInventoryYTests;
+			packageProductDependencies = (
+			);
+			productName = DiskInventoryYTests;
+			productReference = 9DB204C2FBB43C4C63197611 /* DiskInventoryYTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		ADD84ECC4457347E3339BB2F /* DiskInventoryY */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1AF65C380DAAD3F9587F0DC6 /* Build configuration list for PBXNativeTarget "DiskInventoryY" */;
+			buildPhases = (
+				126DCB261AD9400E182959A0 /* Sources */,
+				C8D587B8A92B6D99E5F5884B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DiskInventoryY;
+			packageProductDependencies = (
+			);
+			productName = DiskInventoryY;
+			productReference = 356D192BD6EEBBBBAF213AB7 /* DiskInventoryY.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0E05AABDA3A68E90DB2E1E86 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					9887580E5FBBFF35685A1EA6 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+						TestTargetID = ADD84ECC4457347E3339BB2F;
+					};
+					9DAA2C7606E626B6A8A89005 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					ADD84ECC4457347E3339BB2F = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 2A45CD987E87575929A2228F /* Build configuration list for PBXProject "DiskInventoryY" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = F60A7C674B99E3A3BB67D05A;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = B1827C83B4D9509A04194247 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				ADD84ECC4457347E3339BB2F /* DiskInventoryY */,
+				9DAA2C7606E626B6A8A89005 /* DiskInventoryYTests */,
+				9887580E5FBBFF35685A1EA6 /* DiskInventoryYUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C8D587B8A92B6D99E5F5884B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1638E8A3BE6F371FFF7635C2 /* Assets.xcassets in Resources */,
+				3EA702A0E0490355FC44D64F /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		01CF7162E79397C98F4C8FB0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2B785AC50F71647AB6D5CCA3 /* SmokeUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		126DCB261AD9400E182959A0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				06BAC4C11AF4E9CD5E079B9D /* DiskInventoryYApp.swift in Sources */,
+				AE7FEF0F2572749C499295EB /* RootView.swift in Sources */,
+				C8286B1711DED4FE560C9E21 /* SettingsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		672B9143D2B37D090F9522F6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				49560B3B2D7B54AB072FA964 /* SmokeTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		0EF40034E707EE7A5AE5472E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = ADD84ECC4457347E3339BB2F /* DiskInventoryY */;
+			targetProxy = 0643CE43E856487FF0D203CF /* PBXContainerItemProxy */;
+		};
+		174FC7B4511ECA0D601FA509 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = ADD84ECC4457347E3339BB2F /* DiskInventoryY */;
+			targetProxy = D226CD0ED7BAA3261D403D04 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		30239F2E82AC5CEEC8C24887 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_MODULE_NAME = DiskInventoryYUITests;
+				PRODUCT_NAME = DiskInventoryYUITests;
+				TEST_TARGET_NAME = DiskInventoryY;
+			};
+			name = Debug;
+		};
+		429CDB02E8BD872D50413D92 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D8CD66429A3DA33CB4281D51 /* Release.xcconfig */;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_VERSION = 5.10;
+			};
+			name = Release;
+		};
+		5A291028368A9A2036228787 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_MODULE_NAME = DiskInventoryYTests;
+				PRODUCT_NAME = DiskInventoryYTests;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DiskInventoryY.app/Contents/MacOS/DiskInventoryY";
+			};
+			name = Release;
+		};
+		6FEA8C9844D03437432E0EF2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_MODULE_NAME = DiskInventoryYTests;
+				PRODUCT_NAME = DiskInventoryYTests;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DiskInventoryY.app/Contents/MacOS/DiskInventoryY";
+			};
+			name = Debug;
+		};
+		AC18160F4D7A957595FE06E6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A468C532525C6AEFC9E2AF23 /* Debug.xcconfig */;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				SWIFT_VERSION = 5.10;
+			};
+			name = Debug;
+		};
+		C8FCF5B78FDFF362C2453B66 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = DiskInventoryY/Resources/DiskInventoryY.entitlements;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = DiskInventoryY/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+			};
+			name = Release;
+		};
+		E044A41F5ACA4080E7FECC91 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_MODULE_NAME = DiskInventoryYUITests;
+				PRODUCT_NAME = DiskInventoryYUITests;
+				TEST_TARGET_NAME = DiskInventoryY;
+			};
+			name = Release;
+		};
+		EEFDF44A0A593C2F865676C0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = DiskInventoryY/Resources/DiskInventoryY.entitlements;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = DiskInventoryY/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1AF65C380DAAD3F9587F0DC6 /* Build configuration list for PBXNativeTarget "DiskInventoryY" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EEFDF44A0A593C2F865676C0 /* Debug */,
+				C8FCF5B78FDFF362C2453B66 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		2A45CD987E87575929A2228F /* Build configuration list for PBXProject "DiskInventoryY" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC18160F4D7A957595FE06E6 /* Debug */,
+				429CDB02E8BD872D50413D92 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		5121E67D472ACA14A397166B /* Build configuration list for PBXNativeTarget "DiskInventoryYTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6FEA8C9844D03437432E0EF2 /* Debug */,
+				5A291028368A9A2036228787 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8A77FEAB9F381E741BD2D38E /* Build configuration list for PBXNativeTarget "DiskInventoryYUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				30239F2E82AC5CEEC8C24887 /* Debug */,
+				E044A41F5ACA4080E7FECC91 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0E05AABDA3A68E90DB2E1E86 /* Project object */;
+}
