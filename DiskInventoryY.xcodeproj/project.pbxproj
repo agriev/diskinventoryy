@@ -32,10 +32,12 @@
 		AE7FEF0F2572749C499295EB /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6806DAB26347009ACD5C4286 /* RootView.swift */; };
 		C8286B1711DED4FE560C9E21 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A7AD5169BA2C0111DE9B33 /* SettingsView.swift */; };
 		CE4AE38D77A5A5AEE7C00237 /* KindDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0277EF355739BD2F40F145 /* KindDetectorTests.swift */; };
+		D4A4DBBC93513210414258C8 /* TreemapNSView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BD14913083497FD07E1BFA7 /* TreemapNSView.swift */; };
 		D7CF3289BDB094DD4D434D25 /* VolumeInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90288804FDC9FA14CE9B5369 /* VolumeInfo.swift */; };
 		DA0C204E241029E7822DBEDD /* FilesystemEnumerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF39CB54B2CF86573C59B52 /* FilesystemEnumerator.swift */; };
 		EEBE14F1451EE391B2F42C48 /* FSNodeAggregationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 580DC0E69D0DC9CA6856E670 /* FSNodeAggregationTests.swift */; };
 		EF1FDD8546652D8096C394EF /* ScanProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B19C6EAC8F79F90638989A6 /* ScanProgress.swift */; };
+		EF3B041C2C4AD842327B184B /* TreemapHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23B34464187466F0D6305029 /* TreemapHost.swift */; };
 		F21349875BAF3B28438ECE67 /* ScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDB6972303727E0F5CE7B60 /* ScannerTests.swift */; };
 		F30A4CDE506F9963A91D479F /* KindRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98EB15CEC5BDD1A9425B28B /* KindRegistry.swift */; };
 		F611C0E7262BD9DB04F557BF /* FixtureBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09C2E2EF0C4E45B059FB1E00 /* FixtureBuilder.swift */; };
@@ -67,7 +69,9 @@
 		0B19C6EAC8F79F90638989A6 /* ScanProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanProgress.swift; sourceTree = "<group>"; };
 		0D2DDBCC9DCE534D2A6FC499 /* FilesystemEnumeratorFallback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesystemEnumeratorFallback.swift; sourceTree = "<group>"; };
 		135C45AB02CD76C2F224ED8E /* ColorPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPalette.swift; sourceTree = "<group>"; };
+		1BD14913083497FD07E1BFA7 /* TreemapNSView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreemapNSView.swift; sourceTree = "<group>"; };
 		1C17FC79665A683A5FD1C1DD /* ByteFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByteFormatter.swift; sourceTree = "<group>"; };
+		23B34464187466F0D6305029 /* TreemapHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreemapHost.swift; sourceTree = "<group>"; };
 		33A7AD5169BA2C0111DE9B33 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		356D192BD6EEBBBBAF213AB7 /* DiskInventoryY.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DiskInventoryY.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3C6258D27D5D81C5CD36EE88 /* FileKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileKind.swift; sourceTree = "<group>"; };
@@ -226,6 +230,8 @@
 		784F9C936F5771A2768F14E1 /* Treemap */ = {
 			isa = PBXGroup;
 			children = (
+				23B34464187466F0D6305029 /* TreemapHost.swift */,
+				1BD14913083497FD07E1BFA7 /* TreemapNSView.swift */,
 			);
 			path = Treemap;
 			sourceTree = "<group>";
@@ -461,7 +467,9 @@
 				F9BA2FEA9195EF521BC675B1 /* ScanResult.swift in Sources */,
 				6C7C029D3C6A6522DFE62184 /* Scanner.swift in Sources */,
 				C8286B1711DED4FE560C9E21 /* SettingsView.swift in Sources */,
+				EF3B041C2C4AD842327B184B /* TreemapHost.swift in Sources */,
 				9D6AE3F4EC195C7C8BD91BD2 /* TreemapLayout.swift in Sources */,
+				D4A4DBBC93513210414258C8 /* TreemapNSView.swift in Sources */,
 				D7CF3289BDB094DD4D434D25 /* VolumeInfo.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -5,6 +5,7 @@ struct RootView: View {
     @State private var controller = ScanController()
     @State private var showFolderImporter = false
     @State private var inspectorVisible = false
+    @State private var selectedNode: FSNode?
 
     var body: some View {
         NavigationSplitView {
@@ -14,7 +15,7 @@ struct RootView: View {
                 .toolbar { toolbar }
         }
         .inspector(isPresented: $inspectorVisible) {
-            InspectorPlaceholderView()
+            InspectorPlaceholderView(node: selectedNode)
                 .inspectorColumnWidth(min: 240, ideal: 300, max: 420)
         }
         .fileImporter(
@@ -23,6 +24,7 @@ struct RootView: View {
             allowsMultipleSelection: false
         ) { result in
             if case let .success(urls) = result, let url = urls.first {
+                selectedNode = nil
                 controller.scan(url: url)
             }
         }
@@ -59,11 +61,14 @@ struct RootView: View {
             }
         case .done:
             if let result = controller.result {
-                OutlineTreeView(root: result.root)
-                    .navigationTitle(result.rootURL.lastPathComponent.isEmpty
-                                     ? result.rootURL.path
-                                     : result.rootURL.lastPathComponent)
-                    .navigationSubtitle(summary(for: result))
+                ContentSplitView(
+                    root: result.root,
+                    selectedNode: $selectedNode
+                )
+                .navigationTitle(result.rootURL.lastPathComponent.isEmpty
+                                 ? result.rootURL.path
+                                 : result.rootURL.lastPathComponent)
+                .navigationSubtitle(summary(for: result))
             } else {
                 EmptyStateView { showFolderImporter = true }
             }
@@ -96,6 +101,7 @@ struct RootView: View {
                 Label("Open Folder", systemImage: "folder.badge.plus")
             }
             .help("Choose a folder or volume to scan")
+            .keyboardShortcut("o", modifiers: .command)
 
             Button {
                 inspectorVisible.toggle()
@@ -103,6 +109,24 @@ struct RootView: View {
                 Label("Inspector", systemImage: "sidebar.right")
             }
             .help("Toggle inspector")
+            .keyboardShortcut("i", modifiers: [.command, .control])
+        }
+    }
+}
+
+// MARK: - Content split
+
+struct ContentSplitView: View {
+    let root: FSNode
+    @Binding var selectedNode: FSNode?
+
+    var body: some View {
+        VSplitView {
+            OutlineTreeView(root: root, selectedNode: $selectedNode)
+                .frame(minHeight: 160, idealHeight: 280)
+            TreemapHost(root: root, selectedNode: $selectedNode)
+                .frame(minHeight: 200, idealHeight: 360)
+                .background(Color(nsColor: .windowBackgroundColor))
         }
     }
 }
@@ -180,16 +204,80 @@ struct ScanFailedView: View {
 }
 
 struct InspectorPlaceholderView: View {
+    let node: FSNode?
+
     var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "doc.text.magnifyingglass")
-                .font(.system(size: 36, weight: .light))
-                .foregroundStyle(.secondary)
-            Text("Select an item to inspect")
-                .foregroundStyle(.secondary)
+        if let node {
+            InspectorContent(node: node)
+        } else {
+            VStack(spacing: 12) {
+                Image(systemName: "doc.text.magnifyingglass")
+                    .font(.system(size: 36, weight: .light))
+                    .foregroundStyle(.secondary)
+                Text("Select an item to inspect")
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding()
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding()
+    }
+}
+
+private struct InspectorContent: View {
+    let node: FSNode
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(alignment: .center, spacing: 10) {
+                    Circle()
+                        .fill(ColorPalette.shared.color(for: node.kindID))
+                        .frame(width: 12, height: 12)
+                    Text(node.displayName)
+                        .font(.title3)
+                        .lineLimit(2)
+                        .truncationMode(.middle)
+                }
+                Text(node.url.path)
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+                Divider()
+                row("Physical size", value: ByteFormatter.format(node.physicalSize))
+                row("Logical size", value: ByteFormatter.format(node.logicalSize))
+                row("Items", value: node.itemCount.formatted())
+                row("Kind", value: node.kindID.capitalized)
+                if let mtime = node.mtime {
+                    row("Modified", value: mtime.formatted(.dateTime.year().month().day().hour().minute()))
+                }
+                if !node.flags.isEmpty {
+                    row("Flags", value: flagsDescription)
+                }
+            }
+            .padding()
+        }
+    }
+
+    @ViewBuilder
+    private func row(_ label: String, value: String) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(label)
+                .foregroundStyle(.secondary)
+            Spacer(minLength: 12)
+            Text(value)
+                .multilineTextAlignment(.trailing)
+        }
+        .font(.callout)
+    }
+
+    private var flagsDescription: String {
+        var labels: [String] = []
+        if node.flags.contains(.symlink) { labels.append("symlink") }
+        if node.flags.contains(.hidden) { labels.append("hidden") }
+        if node.flags.contains(.firmlinkTarget) { labels.append("firmlink target") }
+        if node.flags.contains(.hardlinkDuplicate) { labels.append("hardlink duplicate") }
+        if node.flags.contains(.accessDenied) { labels.append("no access") }
+        return labels.joined(separator: ", ")
     }
 }
 

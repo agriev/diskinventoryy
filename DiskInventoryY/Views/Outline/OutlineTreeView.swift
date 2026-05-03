@@ -5,11 +5,13 @@ import SwiftUI
 /// next iteration for performance on big trees.
 struct OutlineTreeView: View {
     let root: FSNode
+    @Binding var selectedNode: FSNode?
 
     var body: some View {
-        List {
+        List(selection: $selectedNode) {
             OutlineGroup(root, children: \.outlineChildren) { node in
                 row(for: node)
+                    .tag(Optional(node))
             }
         }
         .listStyle(.inset)
@@ -33,6 +35,7 @@ struct OutlineTreeView: View {
                 .foregroundStyle(.secondary)
                 .font(.callout)
         }
+        .contentShape(Rectangle())
     }
 
     private func icon(for node: FSNode) -> String {
@@ -87,6 +90,6 @@ extension FSNode {
     b.appendChild(c)
     root.appendChild(a)
     root.appendChild(b)
-    return OutlineTreeView(root: root)
+    return OutlineTreeView(root: root, selectedNode: .constant(nil))
         .frame(width: 480, height: 360)
 }
