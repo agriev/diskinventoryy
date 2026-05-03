@@ -9,15 +9,15 @@ on:
 jobs:
   build-test:
     name: Build & Test
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 20
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Select latest stable Xcode
-        run: sudo xcode-select -s /Applications/Xcode_15.4.app
+      - name: Show available Xcodes
+        run: ls /Applications | grep -i Xcode
 
       - name: Show toolchain
         run: |
