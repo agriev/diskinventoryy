@@ -6,13 +6,23 @@ struct RootView: View {
     @State private var showFolderImporter = false
     @State private var inspectorVisible = false
     @State private var selectedNode: FSNode?
+    @State private var fullDiskAccess = PermissionsProbe.hasFullDiskAccess()
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         NavigationSplitView {
             sidebar
         } detail: {
-            detail
-                .toolbar { toolbar }
+            VStack(spacing: 0) {
+                PermissionsBanner(granted: $fullDiskAccess)
+                detail
+            }
+            .toolbar { toolbar }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                fullDiskAccess = PermissionsProbe.hasFullDiskAccess()
+            }
         }
         .inspector(isPresented: $inspectorVisible) {
             InspectorPlaceholderView(node: selectedNode)
@@ -225,6 +235,8 @@ struct InspectorPlaceholderView: View {
 
 private struct InspectorContent: View {
     let node: FSNode
+    @State private var trashError: String?
+    @State private var showTrashConfirm = false
 
     var body: some View {
         ScrollView {
@@ -253,8 +265,73 @@ private struct InspectorContent: View {
                 if !node.flags.isEmpty {
                     row("Flags", value: flagsDescription)
                 }
+                Divider()
+                actions
+                if let trashError {
+                    Text(trashError)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
             }
             .padding()
+        }
+        .confirmationDialog(
+            "Move \(node.displayName) to Trash?",
+            isPresented: $showTrashConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Move to Trash", role: .destructive) { performTrash() }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This will move the item to the system Trash. The treemap won't update until the next refresh.")
+        }
+    }
+
+    @ViewBuilder
+    private var actions: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Button {
+                FileActions.revealInFinder(node.url)
+            } label: {
+                Label("Reveal in Finder", systemImage: "folder")
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+
+            Button {
+                FileActions.quickLook(node.url)
+            } label: {
+                Label("Quick Look", systemImage: "eye")
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+
+            Button {
+                FileActions.openWithDefaultApp(node.url)
+            } label: {
+                Label("Open with Default App", systemImage: "arrow.up.right.square")
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .disabled(!node.isContainer && node.fileType == .directory)
+
+            Button(role: .destructive) {
+                trashError = nil
+                showTrashConfirm = true
+            } label: {
+                Label("Move to Trash", systemImage: "trash")
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .disabled(node.isSynthetic)
+        }
+    }
+
+    private func performTrash() {
+        do {
+            _ = try FileActions.moveToTrash(node.url)
+        } catch {
+            trashError = "Couldn't move to Trash: \(error.localizedDescription)"
         }
     }
 

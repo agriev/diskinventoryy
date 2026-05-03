@@ -18,20 +18,25 @@
 		2B785AC50F71647AB6D5CCA3 /* SmokeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B194700BBACDAA09241E66B /* SmokeUITests.swift */; };
 		3EA702A0E0490355FC44D64F /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B275DF17430CD95954D8C199 /* Localizable.xcstrings */; };
 		438FB39A2462E85F576E3A8E /* ByteFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C17FC79665A683A5FD1C1DD /* ByteFormatter.swift */; };
+		444700E319CB299C68299CB8 /* PermissionsProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACDA7A2E28C820D50A9B836 /* PermissionsProbe.swift */; };
 		4935D9A0C5F824B8C4FA22D4 /* FilesystemEnumeratorFallback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D2DDBCC9DCE534D2A6FC499 /* FilesystemEnumeratorFallback.swift */; };
 		49560B3B2D7B54AB072FA964 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8339C62F7A16B3A6A83C463A /* SmokeTests.swift */; };
 		4E7FB73B9D4EFA3E0DD511C8 /* FSNodeKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = D840465DB6E78C9A13C8220A /* FSNodeKind.swift */; };
 		5844DB052DC4E73A33CF6064 /* TreemapLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 966454A80CC03505D76C1647 /* TreemapLayoutTests.swift */; };
 		5E2430805F2C10DEE32EA11F /* FSFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FFD1B2C25EFBD3373EC1487 /* FSFlags.swift */; };
 		6C7C029D3C6A6522DFE62184 /* Scanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0FEEEC46E65D47F4EF1A0D4 /* Scanner.swift */; };
+		6DEA40A104B654A09F8A521F /* FileActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BB0B9FF08A89827755309ED /* FileActions.swift */; };
 		7762A9F2149F9C53332525D7 /* FSNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D000355FCEE6EC7852BF55 /* FSNode.swift */; };
 		783523E8213724D26E0C28A1 /* ColorPaletteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDD66D325E882BC7AD4080B2 /* ColorPaletteTests.swift */; };
 		9A212EE6F946E322325DB462 /* ScanID.swift in Sources */ = {isa = PBXBuildFile; fileRef = D86E1B688154CD4CE31057E7 /* ScanID.swift */; };
 		9D6AE3F4EC195C7C8BD91BD2 /* TreemapLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07738E46FEC47B6463FE6944 /* TreemapLayout.swift */; };
+		9E46334CCD50ECD37A6AFFDA /* PermissionsBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93DA6EA20CCC7C6DE8C02A9A /* PermissionsBanner.swift */; };
 		A450B820706B00483F66E1D5 /* ScanProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42C83D8053B82D835DCBBD3 /* ScanProgressView.swift */; };
+		AD0C86F150482A12DDAE80D1 /* SavedScanCodecTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1B96B11B45FDD75861F904 /* SavedScanCodecTests.swift */; };
 		AE7FEF0F2572749C499295EB /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6806DAB26347009ACD5C4286 /* RootView.swift */; };
 		C8286B1711DED4FE560C9E21 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A7AD5169BA2C0111DE9B33 /* SettingsView.swift */; };
 		CE4AE38D77A5A5AEE7C00237 /* KindDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0277EF355739BD2F40F145 /* KindDetectorTests.swift */; };
+		D3DAB6C3A621DB21F8EC67FD /* SavedScanCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 512EF98FFF647F9F1C8C377B /* SavedScanCodec.swift */; };
 		D4A4DBBC93513210414258C8 /* TreemapNSView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BD14913083497FD07E1BFA7 /* TreemapNSView.swift */; };
 		D7CF3289BDB094DD4D434D25 /* VolumeInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90288804FDC9FA14CE9B5369 /* VolumeInfo.swift */; };
 		DA0C204E241029E7822DBEDD /* FilesystemEnumerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF39CB54B2CF86573C59B52 /* FilesystemEnumerator.swift */; };
@@ -77,6 +82,8 @@
 		3C6258D27D5D81C5CD36EE88 /* FileKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileKind.swift; sourceTree = "<group>"; };
 		3D1848C7C55365A12E7F307D /* ScanError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanError.swift; sourceTree = "<group>"; };
 		4496F73908D9C71944536EA7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		4BB0B9FF08A89827755309ED /* FileActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileActions.swift; sourceTree = "<group>"; };
+		512EF98FFF647F9F1C8C377B /* SavedScanCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedScanCodec.swift; sourceTree = "<group>"; };
 		580DC0E69D0DC9CA6856E670 /* FSNodeAggregationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSNodeAggregationTests.swift; sourceTree = "<group>"; };
 		6806DAB26347009ACD5C4286 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		7B194700BBACDAA09241E66B /* SmokeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeUITests.swift; sourceTree = "<group>"; };
@@ -85,6 +92,7 @@
 		81E6A75BC6EB229A25FE4E36 /* ScanController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanController.swift; sourceTree = "<group>"; };
 		8339C62F7A16B3A6A83C463A /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
 		90288804FDC9FA14CE9B5369 /* VolumeInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeInfo.swift; sourceTree = "<group>"; };
+		93DA6EA20CCC7C6DE8C02A9A /* PermissionsBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsBanner.swift; sourceTree = "<group>"; };
 		966454A80CC03505D76C1647 /* TreemapLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreemapLayoutTests.swift; sourceTree = "<group>"; };
 		9DB204C2FBB43C4C63197611 /* DiskInventoryYTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DiskInventoryYTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9FFD1B2C25EFBD3373EC1487 /* FSFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSFlags.swift; sourceTree = "<group>"; };
@@ -96,6 +104,7 @@
 		B39BA78724BF42F26F563129 /* SavedScan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedScan.swift; sourceTree = "<group>"; };
 		BDD66D325E882BC7AD4080B2 /* ColorPaletteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPaletteTests.swift; sourceTree = "<group>"; };
 		C42C83D8053B82D835DCBBD3 /* ScanProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanProgressView.swift; sourceTree = "<group>"; };
+		CC1B96B11B45FDD75861F904 /* SavedScanCodecTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedScanCodecTests.swift; sourceTree = "<group>"; };
 		CEDB6972303727E0F5CE7B60 /* ScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerTests.swift; sourceTree = "<group>"; };
 		D402F3AD989AEB1E825FB5AE /* ScanResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanResult.swift; sourceTree = "<group>"; };
 		D644E501EC0623B8A2C3FFEA /* KindDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KindDetector.swift; sourceTree = "<group>"; };
@@ -106,6 +115,7 @@
 		DC9FF909FC1FC9C962F5D042 /* OutlineTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutlineTreeView.swift; sourceTree = "<group>"; };
 		E7EE63A53271A90557E385B7 /* DiskInventoryY.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DiskInventoryY.entitlements; sourceTree = "<group>"; };
 		FA16BE1EAC0A6F479C926698 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		FACDA7A2E28C820D50A9B836 /* PermissionsProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsProbe.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -121,10 +131,13 @@
 			isa = PBXGroup;
 			children = (
 				135C45AB02CD76C2F224ED8E /* ColorPalette.swift */,
+				4BB0B9FF08A89827755309ED /* FileActions.swift */,
 				7CF39CB54B2CF86573C59B52 /* FilesystemEnumerator.swift */,
 				0D2DDBCC9DCE534D2A6FC499 /* FilesystemEnumeratorFallback.swift */,
 				D644E501EC0623B8A2C3FFEA /* KindDetector.swift */,
 				D98EB15CEC5BDD1A9425B28B /* KindRegistry.swift */,
+				FACDA7A2E28C820D50A9B836 /* PermissionsProbe.swift */,
+				512EF98FFF647F9F1C8C377B /* SavedScanCodec.swift */,
 				A0FEEEC46E65D47F4EF1A0D4 /* Scanner.swift */,
 				07738E46FEC47B6463FE6944 /* TreemapLayout.swift */,
 			);
@@ -185,6 +198,7 @@
 				5C5F01AF44142C042074F476 /* Settings */,
 				34FDCB1408FEAA11E4BF7414 /* Sidebar */,
 				784F9C936F5771A2768F14E1 /* Treemap */,
+				93DA6EA20CCC7C6DE8C02A9A /* PermissionsBanner.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -300,6 +314,7 @@
 				09C2E2EF0C4E45B059FB1E00 /* FixtureBuilder.swift */,
 				580DC0E69D0DC9CA6856E670 /* FSNodeAggregationTests.swift */,
 				AF0277EF355739BD2F40F145 /* KindDetectorTests.swift */,
+				CC1B96B11B45FDD75861F904 /* SavedScanCodecTests.swift */,
 				CEDB6972303727E0F5CE7B60 /* ScannerTests.swift */,
 				8339C62F7A16B3A6A83C463A /* SmokeTests.swift */,
 				966454A80CC03505D76C1647 /* TreemapLayoutTests.swift */,
@@ -451,14 +466,18 @@
 				5E2430805F2C10DEE32EA11F /* FSFlags.swift in Sources */,
 				7762A9F2149F9C53332525D7 /* FSNode.swift in Sources */,
 				4E7FB73B9D4EFA3E0DD511C8 /* FSNodeKind.swift in Sources */,
+				6DEA40A104B654A09F8A521F /* FileActions.swift in Sources */,
 				23A595FC282B97D08166E8C2 /* FileKind.swift in Sources */,
 				DA0C204E241029E7822DBEDD /* FilesystemEnumerator.swift in Sources */,
 				4935D9A0C5F824B8C4FA22D4 /* FilesystemEnumeratorFallback.swift in Sources */,
 				2AEA25C5887ACF4ECA22A01F /* KindDetector.swift in Sources */,
 				F30A4CDE506F9963A91D479F /* KindRegistry.swift in Sources */,
 				278F8D75A13B8B8D56986DDF /* OutlineTreeView.swift in Sources */,
+				9E46334CCD50ECD37A6AFFDA /* PermissionsBanner.swift in Sources */,
+				444700E319CB299C68299CB8 /* PermissionsProbe.swift in Sources */,
 				AE7FEF0F2572749C499295EB /* RootView.swift in Sources */,
 				1CBCDBFB6DB1E66768D5E78C /* SavedScan.swift in Sources */,
+				D3DAB6C3A621DB21F8EC67FD /* SavedScanCodec.swift in Sources */,
 				10DA15E67010A0C82D975F5D /* ScanController.swift in Sources */,
 				1A652BF87AA2089FED0C09D2 /* ScanError.swift in Sources */,
 				9A212EE6F946E322325DB462 /* ScanID.swift in Sources */,
@@ -482,6 +501,7 @@
 				EEBE14F1451EE391B2F42C48 /* FSNodeAggregationTests.swift in Sources */,
 				F611C0E7262BD9DB04F557BF /* FixtureBuilder.swift in Sources */,
 				CE4AE38D77A5A5AEE7C00237 /* KindDetectorTests.swift in Sources */,
+				AD0C86F150482A12DDAE80D1 /* SavedScanCodecTests.swift in Sources */,
 				F21349875BAF3B28438ECE67 /* ScannerTests.swift in Sources */,
 				49560B3B2D7B54AB072FA964 /* SmokeTests.swift in Sources */,
 				5844DB052DC4E73A33CF6064 /* TreemapLayoutTests.swift in Sources */,

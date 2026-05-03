@@ -203,27 +203,69 @@ actor DiskScanner {
     }
 
     private func makeNode(from entry: FSEntry) -> FSNode {
-        let isLeaf = entry.fileType != .directory && entry.fileType != .package
         let isPackage = entry.fileType == .package
+        let isLeaf = entry.fileType != .directory && !isPackage
         let kindID = kindDetector.kind(
             forURL: entry.url,
             fileType: entry.fileType,
             isPackage: isPackage
         )
+
+        var logical = entry.logicalSize
+        var physical = entry.physicalSize
+        var itemCount: Int32 = isLeaf ? 1 : 0
+
+        // Packages render as leaves but should report their contents'
+        // total disk usage. The `descendIntoPackages` toggle, when on,
+        // skips this and treats them as regular directories upstream.
+        if isPackage {
+            let totals = Self.aggregatePackageSize(at: entry.url)
+            logical = max(logical, totals.logical)
+            physical = max(physical, totals.physical)
+            itemCount = totals.count
+        }
+
         return FSNode(
             url: entry.url,
             displayName: entry.name,
             kind: .regular,
             fileType: entry.fileType,
-            logicalSize: entry.logicalSize,
-            physicalSize: entry.physicalSize,
-            itemCount: isLeaf ? 1 : 0,
+            logicalSize: logical,
+            physicalSize: physical,
+            itemCount: itemCount,
             kindID: kindID,
             isPackage: isPackage,
             isMountPoint: false,
             mtime: entry.mtime,
             flags: entry.flags
         )
+    }
+
+    /// Sum file sizes inside a package without exposing the children
+    /// in the tree. Uses `FileManager.enumerator`; acceptable for the
+    /// single-package case (.app, .xcodeproj, etc.).
+    private static func aggregatePackageSize(at url: URL) -> (logical: Int64, physical: Int64, count: Int32) {
+        let keys: Set<URLResourceKey> = [
+            .fileSizeKey, .totalFileAllocatedSizeKey, .isRegularFileKey,
+        ]
+        guard let enumerator = FileManager.default.enumerator(
+            at: url,
+            includingPropertiesForKeys: Array(keys),
+            options: [.skipsHiddenFiles]
+        ) else {
+            return (0, 0, 0)
+        }
+        var logical: Int64 = 0
+        var physical: Int64 = 0
+        var count: Int32 = 0
+        for case let entry as URL in enumerator {
+            guard let values = try? entry.resourceValues(forKeys: keys),
+                  values.isRegularFile == true else { continue }
+            logical &+= Int64(values.fileSize ?? 0)
+            physical &+= Int64(values.totalFileAllocatedSize ?? values.fileSize ?? 0)
+            count &+= 1
+        }
+        return (logical, physical, count)
     }
 
     private func attach(_ node: FSNode, to parent: FSNode) async {

@@ -142,6 +142,21 @@ final class FSNode: Identifiable, Hashable, @unchecked Sendable {
         )
     }
 
+    /// Replace children without propagating any size delta. Used by
+    /// loaders (e.g. `SavedScanCodec`) where the totals are already
+    /// authoritative — each node was serialized with its aggregated
+    /// values.
+    func setChildrenPreservingTotals(_ newChildren: [FSNode]) {
+        for existing in children where existing.parent === self {
+            existing.parent = nil
+        }
+        children = newChildren
+        for child in newChildren {
+            child.parent = self
+            child.depth = depth &+ 1
+        }
+    }
+
     /// Path from the root to this node, inclusive.
     var ancestry: [FSNode] {
         var chain: [FSNode] = []
