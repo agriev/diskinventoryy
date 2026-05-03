@@ -14,6 +14,7 @@
 		1CBCDBFB6DB1E66768D5E78C /* SavedScan.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39BA78724BF42F26F563129 /* SavedScan.swift */; };
 		23A595FC282B97D08166E8C2 /* FileKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C6258D27D5D81C5CD36EE88 /* FileKind.swift */; };
 		278F8D75A13B8B8D56986DDF /* OutlineTreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC9FF909FC1FC9C962F5D042 /* OutlineTreeView.swift */; };
+		2AEA25C5887ACF4ECA22A01F /* KindDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = D644E501EC0623B8A2C3FFEA /* KindDetector.swift */; };
 		2B785AC50F71647AB6D5CCA3 /* SmokeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B194700BBACDAA09241E66B /* SmokeUITests.swift */; };
 		3EA702A0E0490355FC44D64F /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B275DF17430CD95954D8C199 /* Localizable.xcstrings */; };
 		438FB39A2462E85F576E3A8E /* ByteFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C17FC79665A683A5FD1C1DD /* ByteFormatter.swift */; };
@@ -23,16 +24,20 @@
 		5E2430805F2C10DEE32EA11F /* FSFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FFD1B2C25EFBD3373EC1487 /* FSFlags.swift */; };
 		6C7C029D3C6A6522DFE62184 /* Scanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0FEEEC46E65D47F4EF1A0D4 /* Scanner.swift */; };
 		7762A9F2149F9C53332525D7 /* FSNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D000355FCEE6EC7852BF55 /* FSNode.swift */; };
+		783523E8213724D26E0C28A1 /* ColorPaletteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDD66D325E882BC7AD4080B2 /* ColorPaletteTests.swift */; };
 		9A212EE6F946E322325DB462 /* ScanID.swift in Sources */ = {isa = PBXBuildFile; fileRef = D86E1B688154CD4CE31057E7 /* ScanID.swift */; };
 		A450B820706B00483F66E1D5 /* ScanProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42C83D8053B82D835DCBBD3 /* ScanProgressView.swift */; };
 		AE7FEF0F2572749C499295EB /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6806DAB26347009ACD5C4286 /* RootView.swift */; };
 		C8286B1711DED4FE560C9E21 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A7AD5169BA2C0111DE9B33 /* SettingsView.swift */; };
+		CE4AE38D77A5A5AEE7C00237 /* KindDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0277EF355739BD2F40F145 /* KindDetectorTests.swift */; };
 		D7CF3289BDB094DD4D434D25 /* VolumeInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90288804FDC9FA14CE9B5369 /* VolumeInfo.swift */; };
 		DA0C204E241029E7822DBEDD /* FilesystemEnumerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF39CB54B2CF86573C59B52 /* FilesystemEnumerator.swift */; };
 		EEBE14F1451EE391B2F42C48 /* FSNodeAggregationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 580DC0E69D0DC9CA6856E670 /* FSNodeAggregationTests.swift */; };
 		EF1FDD8546652D8096C394EF /* ScanProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B19C6EAC8F79F90638989A6 /* ScanProgress.swift */; };
 		F21349875BAF3B28438ECE67 /* ScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDB6972303727E0F5CE7B60 /* ScannerTests.swift */; };
+		F30A4CDE506F9963A91D479F /* KindRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98EB15CEC5BDD1A9425B28B /* KindRegistry.swift */; };
 		F611C0E7262BD9DB04F557BF /* FixtureBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09C2E2EF0C4E45B059FB1E00 /* FixtureBuilder.swift */; };
+		F878A016EC2D6E9FFCFDC521 /* ColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135C45AB02CD76C2F224ED8E /* ColorPalette.swift */; };
 		F9BA2FEA9195EF521BC675B1 /* ScanResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = D402F3AD989AEB1E825FB5AE /* ScanResult.swift */; };
 /* End PBXBuildFile section */
 
@@ -58,6 +63,7 @@
 		09C2E2EF0C4E45B059FB1E00 /* FixtureBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureBuilder.swift; sourceTree = "<group>"; };
 		0B19C6EAC8F79F90638989A6 /* ScanProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanProgress.swift; sourceTree = "<group>"; };
 		0D2DDBCC9DCE534D2A6FC499 /* FilesystemEnumeratorFallback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesystemEnumeratorFallback.swift; sourceTree = "<group>"; };
+		135C45AB02CD76C2F224ED8E /* ColorPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPalette.swift; sourceTree = "<group>"; };
 		1C17FC79665A683A5FD1C1DD /* ByteFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByteFormatter.swift; sourceTree = "<group>"; };
 		33A7AD5169BA2C0111DE9B33 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		356D192BD6EEBBBBAF213AB7 /* DiskInventoryY.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DiskInventoryY.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -77,14 +83,18 @@
 		A0FEEEC46E65D47F4EF1A0D4 /* Scanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scanner.swift; sourceTree = "<group>"; };
 		A468C532525C6AEFC9E2AF23 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		A9D000355FCEE6EC7852BF55 /* FSNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSNode.swift; sourceTree = "<group>"; };
+		AF0277EF355739BD2F40F145 /* KindDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KindDetectorTests.swift; sourceTree = "<group>"; };
 		B275DF17430CD95954D8C199 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		B39BA78724BF42F26F563129 /* SavedScan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedScan.swift; sourceTree = "<group>"; };
+		BDD66D325E882BC7AD4080B2 /* ColorPaletteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPaletteTests.swift; sourceTree = "<group>"; };
 		C42C83D8053B82D835DCBBD3 /* ScanProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanProgressView.swift; sourceTree = "<group>"; };
 		CEDB6972303727E0F5CE7B60 /* ScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerTests.swift; sourceTree = "<group>"; };
 		D402F3AD989AEB1E825FB5AE /* ScanResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanResult.swift; sourceTree = "<group>"; };
+		D644E501EC0623B8A2C3FFEA /* KindDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KindDetector.swift; sourceTree = "<group>"; };
 		D840465DB6E78C9A13C8220A /* FSNodeKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSNodeKind.swift; sourceTree = "<group>"; };
 		D86E1B688154CD4CE31057E7 /* ScanID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanID.swift; sourceTree = "<group>"; };
 		D8CD66429A3DA33CB4281D51 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
+		D98EB15CEC5BDD1A9425B28B /* KindRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KindRegistry.swift; sourceTree = "<group>"; };
 		DC9FF909FC1FC9C962F5D042 /* OutlineTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutlineTreeView.swift; sourceTree = "<group>"; };
 		E7EE63A53271A90557E385B7 /* DiskInventoryY.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DiskInventoryY.entitlements; sourceTree = "<group>"; };
 		FA16BE1EAC0A6F479C926698 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -102,8 +112,11 @@
 		0A25AF5D955358EF19A5FF42 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				135C45AB02CD76C2F224ED8E /* ColorPalette.swift */,
 				7CF39CB54B2CF86573C59B52 /* FilesystemEnumerator.swift */,
 				0D2DDBCC9DCE534D2A6FC499 /* FilesystemEnumeratorFallback.swift */,
+				D644E501EC0623B8A2C3FFEA /* KindDetector.swift */,
+				D98EB15CEC5BDD1A9425B28B /* KindRegistry.swift */,
 				A0FEEEC46E65D47F4EF1A0D4 /* Scanner.swift */,
 			);
 			path = Services;
@@ -272,8 +285,10 @@
 		F164D2CD8FB6438A80005609 /* DiskInventoryYTests */ = {
 			isa = PBXGroup;
 			children = (
+				BDD66D325E882BC7AD4080B2 /* ColorPaletteTests.swift */,
 				09C2E2EF0C4E45B059FB1E00 /* FixtureBuilder.swift */,
 				580DC0E69D0DC9CA6856E670 /* FSNodeAggregationTests.swift */,
+				AF0277EF355739BD2F40F145 /* KindDetectorTests.swift */,
 				CEDB6972303727E0F5CE7B60 /* ScannerTests.swift */,
 				8339C62F7A16B3A6A83C463A /* SmokeTests.swift */,
 			);
@@ -419,6 +434,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				438FB39A2462E85F576E3A8E /* ByteFormatter.swift in Sources */,
+				F878A016EC2D6E9FFCFDC521 /* ColorPalette.swift in Sources */,
 				06BAC4C11AF4E9CD5E079B9D /* DiskInventoryYApp.swift in Sources */,
 				5E2430805F2C10DEE32EA11F /* FSFlags.swift in Sources */,
 				7762A9F2149F9C53332525D7 /* FSNode.swift in Sources */,
@@ -426,6 +442,8 @@
 				23A595FC282B97D08166E8C2 /* FileKind.swift in Sources */,
 				DA0C204E241029E7822DBEDD /* FilesystemEnumerator.swift in Sources */,
 				4935D9A0C5F824B8C4FA22D4 /* FilesystemEnumeratorFallback.swift in Sources */,
+				2AEA25C5887ACF4ECA22A01F /* KindDetector.swift in Sources */,
+				F30A4CDE506F9963A91D479F /* KindRegistry.swift in Sources */,
 				278F8D75A13B8B8D56986DDF /* OutlineTreeView.swift in Sources */,
 				AE7FEF0F2572749C499295EB /* RootView.swift in Sources */,
 				1CBCDBFB6DB1E66768D5E78C /* SavedScan.swift in Sources */,
@@ -445,8 +463,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				783523E8213724D26E0C28A1 /* ColorPaletteTests.swift in Sources */,
 				EEBE14F1451EE391B2F42C48 /* FSNodeAggregationTests.swift in Sources */,
 				F611C0E7262BD9DB04F557BF /* FixtureBuilder.swift in Sources */,
+				CE4AE38D77A5A5AEE7C00237 /* KindDetectorTests.swift in Sources */,
 				F21349875BAF3B28438ECE67 /* ScannerTests.swift in Sources */,
 				49560B3B2D7B54AB072FA964 /* SmokeTests.swift in Sources */,
 			);

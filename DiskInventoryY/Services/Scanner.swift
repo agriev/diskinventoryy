@@ -32,6 +32,7 @@ actor DiskScanner {
 
     private(set) var state: State = .idle
     private let enumerator: any FilesystemEnumerating
+    private let kindDetector: KindDetector
     private var workTask: Task<Void, Never>?
     private var continuation: AsyncStream<ScanProgress>.Continuation?
     private var progress: ScanProgress = .zero
@@ -39,8 +40,12 @@ actor DiskScanner {
     private var lastEmit: ContinuousClock.Instant = .now
     private static let emitInterval: Duration = .milliseconds(33)
 
-    init(enumerator: any FilesystemEnumerating = FilesystemEnumeratorFallback()) {
+    init(
+        enumerator: any FilesystemEnumerating = FilesystemEnumeratorFallback(),
+        kindDetector: KindDetector = KindDetector()
+    ) {
         self.enumerator = enumerator
+        self.kindDetector = kindDetector
     }
 
     // MARK: - Public API
@@ -199,6 +204,12 @@ actor DiskScanner {
 
     private func makeNode(from entry: FSEntry) -> FSNode {
         let isLeaf = entry.fileType != .directory && entry.fileType != .package
+        let isPackage = entry.fileType == .package
+        let kindID = kindDetector.kind(
+            forURL: entry.url,
+            fileType: entry.fileType,
+            isPackage: isPackage
+        )
         return FSNode(
             url: entry.url,
             displayName: entry.name,
@@ -207,8 +218,8 @@ actor DiskScanner {
             logicalSize: entry.logicalSize,
             physicalSize: entry.physicalSize,
             itemCount: isLeaf ? 1 : 0,
-            kindID: FileKind.other.id,
-            isPackage: entry.fileType == .package,
+            kindID: kindID,
+            isPackage: isPackage,
             isMountPoint: false,
             mtime: entry.mtime,
             flags: entry.flags

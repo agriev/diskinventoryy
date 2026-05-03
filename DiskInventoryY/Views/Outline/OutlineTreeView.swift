@@ -17,7 +17,10 @@ struct OutlineTreeView: View {
 
     @ViewBuilder
     private func row(for node: FSNode) -> some View {
-        HStack {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(ColorPalette.shared.color(for: node.kindID))
+                .frame(width: 8, height: 8)
             Image(systemName: icon(for: node))
                 .foregroundStyle(.secondary)
                 .frame(width: 16)
