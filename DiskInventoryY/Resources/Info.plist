@@ -33,7 +33,7 @@
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>io.github.placeholder.diskinventoryy.scan</string>
+				<string>io.github.agriev.diskinventoryy.scan</string>
 			</array>
 		</dict>
 	</array>
@@ -74,7 +74,7 @@
 			<key>UTTypeDescription</key>
 			<string>DiskInventoryY Saved Scan</string>
 			<key>UTTypeIdentifier</key>
-			<string>io.github.placeholder.diskinventoryy.scan</string>
+			<string>io.github.agriev.diskinventoryy.scan</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>

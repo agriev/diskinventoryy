@@ -2,7 +2,7 @@
 
 A modern disk inventory tool for macOS, written in Swift and SwiftUI. Treemap-based visualization of disk usage, ground-up rewrite of [Disk Inventory X](https://gitlab.com/tderlien/disk-inventory-x).
 
-> Status: **early skeleton** — see [plan](https://github.com/USERNAME/diskinventoryy/issues) for roadmap.
+> Status: **early skeleton** — see [issues](https://github.com/agriev/diskinventoryy/issues) for roadmap.
 
 ## Requirements
 

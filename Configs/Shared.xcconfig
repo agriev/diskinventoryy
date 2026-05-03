@@ -2,7 +2,7 @@
 // Override GITHUB_USER (and DEVELOPMENT_TEAM for signed builds) in your local
 // environment or via xcodebuild GITHUB_USER=yourname.
 
-GITHUB_USER = placeholder
+GITHUB_USER = agriev
 
 // Identity
 PRODUCT_BUNDLE_IDENTIFIER = io.github.$(GITHUB_USER).diskinventoryy

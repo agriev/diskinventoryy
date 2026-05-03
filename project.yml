@@ -1,7 +1,7 @@
 name: DiskInventoryY
 
 options:
-  bundleIdPrefix: io.github.placeholder
+  bundleIdPrefix: io.github.agriev
   developmentLanguage: en
   deploymentTarget:
     macOS: "14.0"
@@ -57,13 +57,13 @@ targets:
             LSHandlerRank: Alternate
           - CFBundleTypeName: DiskInventoryY Scan
             LSItemContentTypes:
-              - io.github.placeholder.diskinventoryy.scan
+              - io.github.agriev.diskinventoryy.scan
             CFBundleTypeRole: Editor
             LSHandlerRank: Owner
             CFBundleTypeExtensions:
               - dscan
         UTExportedTypeDeclarations:
-          - UTTypeIdentifier: io.github.placeholder.diskinventoryy.scan
+          - UTTypeIdentifier: io.github.agriev.diskinventoryy.scan
             UTTypeDescription: DiskInventoryY Saved Scan
             UTTypeConformsTo:
               - public.json
