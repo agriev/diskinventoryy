@@ -120,7 +120,7 @@ struct OutlineHost: NSViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     func makeNSView(context: Context) -> NSScrollView {
-        let outline = NSOutlineView()
+        let outline = ContextMenuOutlineView()
         outline.usesAlternatingRowBackgroundColors = true
         outline.usesAutomaticRowHeights = true
         outline.style = .inset
@@ -251,6 +251,21 @@ final class OutlineCellView: NSTableCellView {
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
+    }
+}
+
+/// `NSOutlineView` subclass that returns a per-row context menu. We
+/// can't do this through the delegate (no such hook) so we override
+/// `menu(for:)` directly.
+final class ContextMenuOutlineView: NSOutlineView {
+    override func menu(for event: NSEvent) -> NSMenu? {
+        let point = convert(event.locationInWindow, from: nil)
+        let row = self.row(at: point)
+        guard row >= 0, let node = item(atRow: row) as? FSNode else { return nil }
+        if !selectedRowIndexes.contains(row) {
+            selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
+        }
+        return ItemContextMenu.make(for: node)
     }
 }
 

@@ -48,6 +48,36 @@ final class ScanController {
         Task { [scanner] in await scanner.cancel() }
     }
 
+    /// Re-scan a single subtree. Replaces `node`'s children with a
+    /// freshly-walked tree; sizes propagate upward through the
+    /// existing `replaceChildren` delta logic. Selection that was
+    /// inside the subtree should be cleared by the caller — the
+    /// subtree's old `FSNode` references go away.
+    func refreshSubtree(_ node: FSNode, options: ScanOptions = .default) {
+        Task { [weak self] in
+            await self?.runRefresh(of: node, options: options)
+        }
+    }
+
+    private func runRefresh(of node: FSNode, options: ScanOptions) async {
+        let oneShot = DiskScanner()
+        let stream = await oneShot.start(at: node.url, options: options)
+        for await update in stream {
+            if update.phase == .done || update.phase == .cancelled { break }
+        }
+        do {
+            let scanResult = try await oneShot.result()
+            let fresh = scanResult.root
+            node.replaceChildren(fresh.children)
+            node.physicalSize = fresh.physicalSize
+            node.logicalSize = fresh.logicalSize
+            node.itemCount = fresh.itemCount
+            node.mtime = fresh.mtime
+        } catch {
+            // Keep the old subtree; the caller can retry.
+        }
+    }
+
     private func drive(url: URL, options: ScanOptions) async {
         let stream = await scanner.start(at: url, options: options)
         var lastPhase: ScanProgress.Phase = .preparing

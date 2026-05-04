@@ -61,6 +61,7 @@ final class TreemapNSView: NSView, NSDraggingSource {
     private var hoveredNodeID: ObjectIdentifier?
     private var dragStartPoint: CGPoint?
     private var trackingArea: NSTrackingArea?
+    private var lastRenderedRoot: ObjectIdentifier?
 
     // MARK: - Init
 
@@ -103,6 +104,7 @@ final class TreemapNSView: NSView, NSDraggingSource {
         guard let root, bounds.width > 0, bounds.height > 0 else {
             cells = []
             nodeIndex = [:]
+            lastRenderedRoot = nil
             needsDisplay = true
             return
         }
@@ -112,6 +114,22 @@ final class TreemapNSView: NSView, NSDraggingSource {
         cells = TreemapLayout.layout(root: root, bounds: bounds, options: options)
         rebuildNodeIndex(root: root)
         needsDisplay = true
+
+        // Crossfade when the root identity changes — drill-in,
+        // drill-out, or a fresh scan. Skip when the user has Reduce
+        // Motion enabled or layer isn't available.
+        let newRootID = ObjectIdentifier(root)
+        if let last = lastRenderedRoot, last != newRootID,
+           !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion,
+           let layer {
+            let fade = CABasicAnimation(keyPath: "opacity")
+            fade.fromValue = 0.0
+            fade.toValue = 1.0
+            fade.duration = 0.22
+            fade.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            layer.add(fade, forKey: "treemap-drill-fade")
+        }
+        lastRenderedRoot = newRootID
     }
 
     private func rebuildNodeIndex(root: FSNode) {
@@ -300,6 +318,16 @@ final class TreemapNSView: NSView, NSDraggingSource {
         } else {
             dragStartPoint = local
         }
+    }
+
+    override func menu(for event: NSEvent) -> NSMenu? {
+        let local = convert(event.locationInWindow, from: nil)
+        guard let hit = hitTestCell(at: local) else { return nil }
+        // Surface the right-clicked cell as the selection so the
+        // treemap reflects what the menu is acting on.
+        onSelect?(hit)
+        selectedNodeID = ObjectIdentifier(hit)
+        return ItemContextMenu.make(for: hit)
     }
 
     override func mouseDragged(with event: NSEvent) {

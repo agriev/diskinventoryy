@@ -46,6 +46,7 @@
 		D4A4DBBC93513210414258C8 /* TreemapNSView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BD14913083497FD07E1BFA7 /* TreemapNSView.swift */; };
 		D7CF3289BDB094DD4D434D25 /* VolumeInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90288804FDC9FA14CE9B5369 /* VolumeInfo.swift */; };
 		DA0C204E241029E7822DBEDD /* FilesystemEnumerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF39CB54B2CF86573C59B52 /* FilesystemEnumerator.swift */; };
+		E0D53FBB1B15BF139C2AA48C /* ItemContextMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B44545490BC10A18B4E7655 /* ItemContextMenu.swift */; };
 		EEBE14F1451EE391B2F42C48 /* FSNodeAggregationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 580DC0E69D0DC9CA6856E670 /* FSNodeAggregationTests.swift */; };
 		EF1FDD8546652D8096C394EF /* ScanProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B19C6EAC8F79F90638989A6 /* ScanProgress.swift */; };
 		EF3B041C2C4AD842327B184B /* TreemapHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23B34464187466F0D6305029 /* TreemapHost.swift */; };
@@ -109,6 +110,7 @@
 		9295A1DDCC721862A254D127 /* RecentsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentsStore.swift; sourceTree = "<group>"; };
 		93DA6EA20CCC7C6DE8C02A9A /* PermissionsBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsBanner.swift; sourceTree = "<group>"; };
 		966454A80CC03505D76C1647 /* TreemapLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreemapLayoutTests.swift; sourceTree = "<group>"; };
+		9B44545490BC10A18B4E7655 /* ItemContextMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemContextMenu.swift; sourceTree = "<group>"; };
 		9C4A6482F569FEE5ED9484AC /* OutlineHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutlineHost.swift; sourceTree = "<group>"; };
 		9DB204C2FBB43C4C63197611 /* DiskInventoryYTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DiskInventoryYTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9FFD1B2C25EFBD3373EC1487 /* FSFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSFlags.swift; sourceTree = "<group>"; };
@@ -220,6 +222,7 @@
 				5C5F01AF44142C042074F476 /* Settings */,
 				34FDCB1408FEAA11E4BF7414 /* Sidebar */,
 				784F9C936F5771A2768F14E1 /* Treemap */,
+				9B44545490BC10A18B4E7655 /* ItemContextMenu.swift */,
 				93DA6EA20CCC7C6DE8C02A9A /* PermissionsBanner.swift */,
 			);
 			path = Views;
@@ -496,6 +499,7 @@
 				DA0C204E241029E7822DBEDD /* FilesystemEnumerator.swift in Sources */,
 				4935D9A0C5F824B8C4FA22D4 /* FilesystemEnumeratorFallback.swift in Sources */,
 				EF898F0B2F4CA8CCF6973509 /* IconCache.swift in Sources */,
+				E0D53FBB1B15BF139C2AA48C /* ItemContextMenu.swift in Sources */,
 				2AEA25C5887ACF4ECA22A01F /* KindDetector.swift in Sources */,
 				F30A4CDE506F9963A91D479F /* KindRegistry.swift in Sources */,
 				4BB5B2EAFCF14D11BCA330E5 /* KindsAggregator.swift in Sources */,

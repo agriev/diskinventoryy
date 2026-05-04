@@ -134,6 +134,24 @@ struct RootView: View {
         controller.scan(url: url, options: settings.scanOptions)
     }
 
+    /// True if the selected node is a real (non-synthetic) container
+    /// that we can re-scan in place.
+    private var canRefreshSelection: Bool {
+        guard let node = selectedNode, controller != nil else { return false }
+        return node.isContainer && !node.isSynthetic
+    }
+
+    /// Re-scan only the selected folder. Replaces its children atomically
+    /// once the mini-scan finishes; sizes bubble up through the parent
+    /// chain via `FSNode.replaceChildren`. The current selection is
+    /// cleared because the FSNode references inside the subtree are
+    /// thrown away.
+    private func refreshSelection() {
+        guard let controller, let node = selectedNode, canRefreshSelection else { return }
+        selectedNode = nil
+        controller.refreshSubtree(node, options: settings.scanOptions)
+    }
+
     // MARK: - Sidebar
 
     @ViewBuilder
@@ -244,6 +262,15 @@ struct RootView: View {
             .help("Re-scan the current root (⌘R)")
             .keyboardShortcut("r", modifiers: .command)
             .disabled(controller?.result?.rootURL == nil && controller?.rootURL == nil)
+
+            Button {
+                refreshSelection()
+            } label: {
+                Label("Refresh Selection", systemImage: "arrow.clockwise.circle")
+            }
+            .help("Re-scan the selected folder (⇧⌘R)")
+            .keyboardShortcut("r", modifiers: [.command, .shift])
+            .disabled(!canRefreshSelection)
 
             Button {
                 kindsBarVisible.toggle()
