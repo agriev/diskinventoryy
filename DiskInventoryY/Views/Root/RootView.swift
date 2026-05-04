@@ -2,9 +2,11 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct RootView: View {
-    @State private var controller = ScanController()
+    let scanID: ScanID?
+
     @State private var volumeService = VolumeService()
     @State private var recents = RecentsStore.shared
+    @State private var registry = ScanRegistry.shared
     @State private var showFolderImporter = false
     @State private var inspectorVisible = false
     @State private var kindsBarVisible = true
@@ -14,6 +16,12 @@ struct RootView: View {
     @State private var fullDiskAccess = PermissionsProbe.hasFullDiskAccess()
     @State private var lastRecordedRoot: URL?
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openWindow) private var openWindow
+
+    private var controller: ScanController? {
+        guard let scanID else { return nil }
+        return registry.controllers[scanID]
+    }
 
     var body: some View {
         NavigationSplitView {
@@ -34,8 +42,15 @@ struct RootView: View {
                 fullDiskAccess = PermissionsProbe.hasFullDiskAccess()
             }
         }
-        .onChange(of: controller.phase) { _, phase in
-            if case .done = phase, let result = controller.result, result.rootURL != lastRecordedRoot {
+        .onChange(of: scanID) { _, _ in
+            selectedNode = nil
+            highlightedKind = nil
+            drillStack = []
+            lastRecordedRoot = nil
+        }
+        .onChange(of: controller?.phase) { _, phase in
+            guard let phase else { return }
+            if case .done = phase, let result = controller?.result, result.rootURL != lastRecordedRoot {
                 let entry = RecentsStore.Entry(
                     url: result.rootURL,
                     displayName: result.rootURL.lastPathComponent.isEmpty
@@ -49,20 +64,23 @@ struct RootView: View {
                 selectedNode = nil
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .openFolderRequested)) { _ in
+            showFolderImporter = true
+        }
         .fileImporter(
             isPresented: $showFolderImporter,
             allowedContentTypes: [.folder],
             allowsMultipleSelection: false
         ) { result in
             if case let .success(urls) = result, let url = urls.first {
-                startScan(url: url)
+                openScan(url: url)
             }
         }
         .onDrop(of: [.fileURL], isTargeted: nil) { providers in
             for provider in providers {
                 _ = provider.loadObject(ofClass: URL.self) { url, _ in
                     if let url, url.hasDirectoryPath {
-                        DispatchQueue.main.async { startScan(url: url) }
+                        DispatchQueue.main.async { openScan(url: url) }
                     }
                 }
             }
@@ -70,11 +88,16 @@ struct RootView: View {
         }
     }
 
-    private func startScan(url: URL) {
-        selectedNode = nil
-        highlightedKind = nil
-        drillStack = []
-        controller.scan(url: url)
+    /// Either run the scan in this window (when it's the empty landing
+    /// window) or open a new window for the new scan.
+    private func openScan(url: URL) {
+        let id = registry.startNewScan(url: url)
+        if scanID == nil {
+            // Replace this empty landing window with the new scan.
+            openWindow(value: ScanID?.some(id))
+        } else {
+            openWindow(value: ScanID?.some(id))
+        }
     }
 
     // MARK: - Sidebar
@@ -83,11 +106,11 @@ struct RootView: View {
     private var sidebar: some View {
         List {
             DrivesSection(volumes: volumeService.volumes) { url in
-                startScan(url: url)
+                openScan(url: url)
             }
             RecentsSection(
                 entries: recents.entries,
-                onPick: { url in startScan(url: url) },
+                onPick: { url in openScan(url: url) },
                 onClear: { recents.clear() }
             )
         }
@@ -99,6 +122,15 @@ struct RootView: View {
 
     @ViewBuilder
     private var detail: some View {
+        if let controller {
+            scanContent(for: controller)
+        } else {
+            EmptyStateView { showFolderImporter = true }
+        }
+    }
+
+    @ViewBuilder
+    private func scanContent(for controller: ScanController) -> some View {
         switch controller.phase {
         case .idle:
             EmptyStateView { showFolderImporter = true }
@@ -566,6 +598,6 @@ private struct InspectorContent: View {
 }
 
 #Preview {
-    RootView()
+    RootView(scanID: nil)
         .frame(width: 1200, height: 800)
 }

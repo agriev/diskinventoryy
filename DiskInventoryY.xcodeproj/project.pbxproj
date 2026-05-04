@@ -27,6 +27,7 @@
 		4E7FB73B9D4EFA3E0DD511C8 /* FSNodeKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = D840465DB6E78C9A13C8220A /* FSNodeKind.swift */; };
 		5844DB052DC4E73A33CF6064 /* TreemapLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 966454A80CC03505D76C1647 /* TreemapLayoutTests.swift */; };
 		5E2430805F2C10DEE32EA11F /* FSFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FFD1B2C25EFBD3373EC1487 /* FSFlags.swift */; };
+		6C24908F87DA41555D44DA68 /* ScanRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 820187242E56E19050C1708E /* ScanRegistry.swift */; };
 		6C7C029D3C6A6522DFE62184 /* Scanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0FEEEC46E65D47F4EF1A0D4 /* Scanner.swift */; };
 		6DEA40A104B654A09F8A521F /* FileActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BB0B9FF08A89827755309ED /* FileActions.swift */; };
 		7762A9F2149F9C53332525D7 /* FSNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D000355FCEE6EC7852BF55 /* FSNode.swift */; };
@@ -98,6 +99,7 @@
 		7CF39CB54B2CF86573C59B52 /* FilesystemEnumerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesystemEnumerator.swift; sourceTree = "<group>"; };
 		7DD422BCA90E244C963C698D /* DiskInventoryYUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DiskInventoryYUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		81E6A75BC6EB229A25FE4E36 /* ScanController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanController.swift; sourceTree = "<group>"; };
+		820187242E56E19050C1708E /* ScanRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanRegistry.swift; sourceTree = "<group>"; };
 		8288C97C1E138930BA3F59A4 /* IconCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconCache.swift; sourceTree = "<group>"; };
 		8339C62F7A16B3A6A83C463A /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
 		8BA837092BB76F49D3F2B760 /* KindsAggregator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KindsAggregator.swift; sourceTree = "<group>"; };
@@ -154,6 +156,7 @@
 				9295A1DDCC721862A254D127 /* RecentsStore.swift */,
 				512EF98FFF647F9F1C8C377B /* SavedScanCodec.swift */,
 				A0FEEEC46E65D47F4EF1A0D4 /* Scanner.swift */,
+				820187242E56E19050C1708E /* ScanRegistry.swift */,
 				07738E46FEC47B6463FE6944 /* TreemapLayout.swift */,
 				1ACB2F39F8D5655C2159CF37 /* VolumeService.swift */,
 			);
@@ -505,6 +508,7 @@
 				9A212EE6F946E322325DB462 /* ScanID.swift in Sources */,
 				EF1FDD8546652D8096C394EF /* ScanProgress.swift in Sources */,
 				A450B820706B00483F66E1D5 /* ScanProgressView.swift in Sources */,
+				6C24908F87DA41555D44DA68 /* ScanRegistry.swift in Sources */,
 				F9BA2FEA9195EF521BC675B1 /* ScanResult.swift in Sources */,
 				6C7C029D3C6A6522DFE62184 /* Scanner.swift in Sources */,
 				C8286B1711DED4FE560C9E21 /* SettingsView.swift in Sources */,
