@@ -2,7 +2,7 @@
 
 A modern disk inventory tool for macOS, written in Swift and SwiftUI. Treemap-based visualization of disk usage, ground-up rewrite of [Disk Inventory X](https://gitlab.com/tderlien/disk-inventory-x).
 
-> Status: **v0.3.0** — multi-window (`WindowGroup(for: ScanID?.self)` + `ScanRegistry`); each scan opens in its own restorable window. Cmd+N for a new scan. Plus everything from v0.2.0 (NSOutlineView host, cushion-shaded treemap, drag-out file URLs, drill-in/breadcrumbs, live volumes sidebar, recents, Kinds bar with one-tap filter). Outstanding for v0.4+: `getattrlistbulk(2)` fast path, real Figma AppIcon, signed/notarized release builds.
+> Status: **v0.4.0** — proper AppIcon (squircle with a stylized squarified-treemap top, Y-shape negative space, light SSD silhouette). Plus everything from v0.3.0 (multi-window, NSOutlineView host, cushion-shaded treemap, drag-out file URLs, drill-in/breadcrumbs, live volumes sidebar, recents, Kinds bar). Outstanding: `getattrlistbulk(2)` fast path, signed/notarized release builds.
 
 ## Requirements
 
