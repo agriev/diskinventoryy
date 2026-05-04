@@ -78,19 +78,56 @@ DiskInventoryY is a from-scratch Swift/SwiftUI rewrite of [Disk Inventory X](htt
 
 ## Releases & signing
 
-Tagged releases (`v*`) trigger `.github/workflows/release.yml`. Without secrets the workflow falls back to an ad-hoc-signed `.app` packaged into a DMG; users have to right-click → Open the first time, or run `xattr -dr com.apple.quarantine /Applications/DiskInventoryY.app`.
+Tagged releases (`v*`) trigger `.github/workflows/release.yml`, which always produces an **ad-hoc-signed** DMG and attaches it to the GitHub Release. Users have to right-click → Open the first time, or run `xattr -dr com.apple.quarantine /Applications/DiskInventoryY.app`.
 
-To ship notarized DMGs add these repo secrets (Settings → Secrets and variables → Actions):
+For a properly signed and notarized build there are two paths.
 
-| Secret | What it is | How to get it |
-|---|---|---|
-| `APPLE_ID` | Apple ID email | the Apple ID enrolled in the Apple Developer Program |
-| `TEAM_ID` | 10-character team identifier | <https://developer.apple.com/account#MembershipDetailsCard> |
-| `APPLE_APP_PASSWORD` | app-specific password for `notarytool` | <https://account.apple.com> → Sign-In and Security → App-Specific Passwords |
-| `MACOS_CERTIFICATE` *(future)* | base64-encoded `.p12` of the Developer ID Application cert | export the cert from Keychain → `base64 -i cert.p12 \| pbcopy` |
-| `MACOS_CERTIFICATE_PWD` *(future)* | password for the `.p12` | whatever you set on export |
+### Path A: locally, no secrets in GitHub *(recommended)*
 
-After the first three are set, the next `git tag v0.6.1 && git push --tags` will: archive the app, run `notarytool submit --wait`, staple the ticket, and attach the notarized DMG to the GitHub Release. The fourth and fifth secrets aren't read by the current workflow yet — they're slotted in for when we wire actual codesigning into `Scripts/BuildRelease.sh` (currently relying on whatever signing identity is available locally).
+Everything stays on your Mac — no Apple credentials in the repo, in env vars, or in GitHub Actions secrets.
+
+**One-time setup:**
+
+1. Be enrolled in the Apple Developer Program (≈ $99/year).
+2. Create a *Developer ID Application* certificate at <https://developer.apple.com/account/resources/certificates/> and import it into the login Keychain. Verify with `security find-identity -p codesigning -v`.
+3. Generate an app-specific password at <https://account.apple.com> → Sign-In and Security → App-Specific Passwords.
+4. Stash it in the system Keychain (one prompt; nothing on disk in plaintext):
+
+   ```sh
+   Scripts/StoreNotaryCreds.sh
+   ```
+
+   The script wraps `xcrun notarytool store-credentials` and saves a profile named `DiskInventoryY-Notarization`.
+
+**Each release:**
+
+```sh
+git tag v1.1.0 && git push --tags        # CI builds the unsigned DMG
+Scripts/BuildSignedRelease.sh            # local: sign + notarize + DMG
+gh release upload v1.1.0 build/DiskInventoryY-1.1.0.dmg \
+  --repo agriev/diskinventoryy --clobber
+```
+
+`BuildSignedRelease.sh` auto-detects your Developer ID identity from Keychain, sets `--options=runtime`, submits to Apple's notary service via the stored profile, staples the ticket onto both the `.app` and the DMG, and packages them with a `/Applications` shortcut. It honours `SKIP_NOTARIZE=1` and `SKIP_DMG=1` if you want to break the steps apart.
+
+### Path B: GitHub Actions notarizes for you
+
+If you'd rather have CI do it on every tag, add these repo secrets at *Settings → Secrets and variables → Actions*:
+
+| Secret | What it is |
+|---|---|
+| `APPLE_ID` | Apple ID email enrolled in the Developer Program |
+| `TEAM_ID` | 10-character team identifier (`developer.apple.com/account` → Membership) |
+| `APPLE_APP_PASSWORD` | app-specific password from `account.apple.com` |
+
+Optional, for full codesigning in CI (not yet wired):
+
+| Secret | What it is |
+|---|---|
+| `MACOS_CERTIFICATE` | base64-encoded `.p12` of the Developer ID Application cert |
+| `MACOS_CERTIFICATE_PWD` | the `.p12` password |
+
+The workflow already calls `notarize.sh` when those vars are present.
 
 ## License
 
