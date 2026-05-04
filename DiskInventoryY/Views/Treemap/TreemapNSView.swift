@@ -1,10 +1,11 @@
 import AppKit
+import UniformTypeIdentifiers
 
 /// Custom `NSView` that draws a treemap from a `TreemapLayout` snapshot.
 /// Drawing happens in a single `draw(_:)` pass into the layer's backing
-/// store; SwiftUI/AppKit transparency hits stay constant regardless of
-/// cell count.
-final class TreemapNSView: NSView {
+/// store. Adds cushion shading, hover ring, drill-in/drill-out, and
+/// drag-out of file URLs.
+final class TreemapNSView: NSView, NSDraggingSource {
 
     // MARK: - Inputs
 
@@ -21,17 +22,25 @@ final class TreemapNSView: NSView {
         didSet { needsDisplay = true }
     }
 
-    /// Notified when the user clicks a cell. Receives the `FSNode` at
-    /// the click point or `nil` when the click landed outside any cell.
+    /// When non-nil, only cells whose kindID matches stay at full alpha;
+    /// everything else fades to ~20%.
+    var highlightedKindID: FileKind.ID? {
+        didSet { needsDisplay = true }
+    }
+
+    /// Notified when the user clicks a cell.
     var onSelect: ((FSNode?) -> Void)?
+
+    /// Notified when the user double-clicks a cell (drill-in request).
+    var onDrillIn: ((FSNode) -> Void)?
 
     // MARK: - State
 
     private var cells: [TreemapCell] = []
-    /// Resolves a cell's `nodeID` back to its `FSNode`. We hold strong
-    /// references so the algorithm output remains addressable while the
-    /// view lives.
     private var nodeIndex: [ObjectIdentifier: FSNode] = [:]
+    private var hoveredNodeID: ObjectIdentifier?
+    private var dragStartPoint: CGPoint?
+    private var trackingArea: NSTrackingArea?
 
     // MARK: - Init
 
@@ -55,6 +64,19 @@ final class TreemapNSView: NSView {
     override func setFrameSize(_ newSize: NSSize) {
         super.setFrameSize(newSize)
         rebuildLayout()
+    }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let area = trackingArea { removeTrackingArea(area) }
+        let area = NSTrackingArea(
+            rect: bounds,
+            options: [.activeInActiveApp, .mouseMoved, .mouseEnteredAndExited, .inVisibleRect],
+            owner: self,
+            userInfo: nil
+        )
+        addTrackingArea(area)
+        trackingArea = area
     }
 
     private func rebuildLayout() {
@@ -89,44 +111,83 @@ final class TreemapNSView: NSView {
         context.saveGState()
         defer { context.restoreGState() }
 
-        // Background.
         context.setFillColor(NSColor.windowBackgroundColor.cgColor)
         context.fill(dirtyRect)
 
         let isDark = effectiveAppearance.bestMatch(from: [.darkAqua, .vibrantDark]) != nil
+        let highlight = highlightedKindID
+        let cushion = !NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
 
         for cell in cells {
             guard cell.depth > 0 else { continue }
             guard cell.rect.intersects(dirtyRect) else { continue }
             guard let node = nodeIndex[cell.nodeID] else { continue }
 
+            let dimmed = highlight != nil && node.kindID != highlight
             let baseColor = palette.nsColor(for: node.kindID)
             let depthAdjusted = colorAdjustedForDepth(baseColor, depth: cell.depth, isDark: isDark)
+            let finalColor = dimmed
+                ? depthAdjusted.withAlphaComponent(0.18)
+                : depthAdjusted
 
-            context.setFillColor(depthAdjusted.cgColor)
+            context.setFillColor(finalColor.cgColor)
             context.fill(cell.rect)
 
-            // Subtle border to separate cells of the same kind.
+            if cushion, !dimmed, cell.rect.width >= 6, cell.rect.height >= 6 {
+                drawCushion(in: cell.rect, context: context, isDark: isDark)
+            }
+
             if cell.rect.width >= 4 && cell.rect.height >= 4 {
-                context.setStrokeColor(NSColor.black.withAlphaComponent(0.18).cgColor)
+                context.setStrokeColor(NSColor.black.withAlphaComponent(isDark ? 0.30 : 0.18).cgColor)
                 context.setLineWidth(0.5)
                 context.stroke(cell.rect.insetBy(dx: 0.25, dy: 0.25))
             }
         }
 
-        // Selection overlay: drawn last so it sits above the fills.
+        // Hover ring (drawn before selection so selection wins).
+        if let hoveredNodeID,
+           let cell = cells.first(where: { $0.nodeID == hoveredNodeID && $0.depth > 0 }) {
+            context.setStrokeColor(NSColor.controlAccentColor.withAlphaComponent(0.4).cgColor)
+            context.setLineWidth(1)
+            context.stroke(cell.rect.insetBy(dx: 0.5, dy: 0.5))
+        }
+
+        // Selection ring.
         if let selectedNodeID,
            let cell = cells.first(where: { $0.nodeID == selectedNodeID && $0.depth > 0 }) {
             context.setStrokeColor(NSColor.controlAccentColor.cgColor)
             context.setLineWidth(2)
-            let inset: CGFloat = 1
-            context.stroke(cell.rect.insetBy(dx: inset, dy: inset))
+            context.stroke(cell.rect.insetBy(dx: 1, dy: 1))
         }
     }
 
+    /// Top-left → bottom-right linear gradient via `.multiply`. Cheap
+    /// approximation of the Bruls/van Wijk cushion treemap; reads as
+    /// gentle 3-D shading without per-pixel work.
+    private func drawCushion(in rect: CGRect, context: CGContext, isDark: Bool) {
+        context.saveGState()
+        defer { context.restoreGState() }
+        context.clip(to: rect)
+        context.setBlendMode(.multiply)
+        let intensity: CGFloat = isDark ? 0.10 : 0.18
+        let colors = [
+            NSColor(white: 1.0, alpha: 1.0 - intensity * 0.5).cgColor,
+            NSColor(white: 1.0 - intensity, alpha: 1.0).cgColor,
+        ]
+        guard let gradient = CGGradient(
+            colorsSpace: CGColorSpaceCreateDeviceRGB(),
+            colors: colors as CFArray,
+            locations: [0, 1]
+        ) else { return }
+        context.drawLinearGradient(
+            gradient,
+            start: CGPoint(x: rect.minX, y: rect.minY),
+            end: CGPoint(x: rect.maxX, y: rect.maxY),
+            options: []
+        )
+    }
+
     private func colorAdjustedForDepth(_ color: NSColor, depth: UInt8, isDark: Bool) -> NSColor {
-        // Each level darkens slightly so nested folders are visually
-        // distinguishable from their parent of the same kind.
         let darkenStep: CGFloat = 0.05
         let attenuation = min(CGFloat(depth) * darkenStep, 0.4)
         let factor: CGFloat = isDark ? (1.0 - attenuation * 0.5) : (1.0 - attenuation)
@@ -139,17 +200,115 @@ final class TreemapNSView: NSView {
         )
     }
 
-    // MARK: - Hit testing
+    // MARK: - Mouse events
+
+    override func mouseEntered(with event: NSEvent) {
+        updateHover(at: convert(event.locationInWindow, from: nil))
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        if hoveredNodeID != nil {
+            hoveredNodeID = nil
+            needsDisplay = true
+        }
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        updateHover(at: convert(event.locationInWindow, from: nil))
+    }
+
+    private func updateHover(at point: CGPoint) {
+        let hit = hitTestCell(at: point)
+        let newID = hit.map(ObjectIdentifier.init)
+        if newID != hoveredNodeID {
+            hoveredNodeID = newID
+            needsDisplay = true
+            if let hit { toolTip = "\(hit.displayName) — \(ByteFormatter.format(hit.physicalSize))" }
+            else { toolTip = nil }
+        }
+    }
 
     override func mouseDown(with event: NSEvent) {
         let local = convert(event.locationInWindow, from: nil)
+        dragStartPoint = local
         let hit = hitTestCell(at: local)
         onSelect?(hit)
         if let hit { selectedNodeID = ObjectIdentifier(hit) }
+        if event.clickCount >= 2, let hit {
+            let target: FSNode? = {
+                if hit.isContainer { return hit }
+                var cursor = hit.parent
+                while let node = cursor {
+                    if node.isContainer { return node }
+                    cursor = node.parent
+                }
+                return nil
+            }()
+            if let target { onDrillIn?(target) }
+        }
     }
 
-    /// Find the deepest cell that contains `point`. Walks the cell list
-    /// in reverse so leaves win over their ancestor parent rects.
+    override func mouseDragged(with event: NSEvent) {
+        guard let start = dragStartPoint else { return }
+        let here = convert(event.locationInWindow, from: nil)
+        let dx = here.x - start.x
+        let dy = here.y - start.y
+        guard dx * dx + dy * dy > 16 else { return }   // 4 pt deadzone
+
+        guard let selectedNodeID,
+              let node = nodeIndex[selectedNodeID],
+              !node.isSynthetic else {
+            return
+        }
+
+        let pasteboardItem = NSPasteboardItem()
+        pasteboardItem.setString(node.url.absoluteString, forType: .fileURL)
+        pasteboardItem.setString(node.url.path, forType: .string)
+
+        let dragItem = NSDraggingItem(pasteboardWriter: pasteboardItem)
+        if let cell = cells.first(where: { $0.nodeID == selectedNodeID && $0.depth > 0 }) {
+            dragItem.draggingFrame = cell.rect
+            dragItem.imageComponentsProvider = { [weak self] in
+                guard let self else { return [] }
+                let component = NSDraggingImageComponent(key: .icon)
+                component.contents = self.snapshotImage(of: cell.rect, for: node)
+                component.frame = CGRect(origin: .zero, size: cell.rect.size)
+                return [component]
+            }
+        }
+        beginDraggingSession(with: [dragItem], event: event, source: self)
+        dragStartPoint = nil
+    }
+
+    private func snapshotImage(of rect: CGRect, for node: FSNode) -> NSImage {
+        let size = rect.size
+        let image = NSImage(size: size)
+        image.lockFocus()
+        defer { image.unlockFocus() }
+        guard let context = NSGraphicsContext.current?.cgContext else { return image }
+        let baseColor = palette.nsColor(for: node.kindID).withAlphaComponent(0.85)
+        context.setFillColor(baseColor.cgColor)
+        context.fill(CGRect(origin: .zero, size: size))
+        context.setStrokeColor(NSColor.black.withAlphaComponent(0.4).cgColor)
+        context.stroke(CGRect(origin: .zero, size: size).insetBy(dx: 0.5, dy: 0.5))
+        return image
+    }
+
+    // MARK: - NSDraggingSource
+
+    func draggingSession(
+        _ session: NSDraggingSession,
+        sourceOperationMaskFor context: NSDraggingContext
+    ) -> NSDragOperation {
+        switch context {
+        case .outsideApplication: return [.copy, .link]
+        case .withinApplication:  return [.copy]
+        @unknown default:         return [.copy]
+        }
+    }
+
+    // MARK: - Hit testing
+
     private func hitTestCell(at point: CGPoint) -> FSNode? {
         for cell in cells.reversed() {
             if cell.depth > 0, cell.rect.contains(point) {

@@ -24,6 +24,7 @@ build/export/
 # Tooling
 .swiftlintcache
 .sourcekit-lsp/
+.claude/
 
 # Secrets
 *.p12

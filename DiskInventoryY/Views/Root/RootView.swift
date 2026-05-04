@@ -3,10 +3,16 @@ import UniformTypeIdentifiers
 
 struct RootView: View {
     @State private var controller = ScanController()
+    @State private var volumeService = VolumeService()
+    @State private var recents = RecentsStore.shared
     @State private var showFolderImporter = false
     @State private var inspectorVisible = false
+    @State private var kindsBarVisible = true
     @State private var selectedNode: FSNode?
+    @State private var highlightedKind: FileKind.ID?
+    @State private var drillStack: [FSNode] = []
     @State private var fullDiskAccess = PermissionsProbe.hasFullDiskAccess()
+    @State private var lastRecordedRoot: URL?
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -19,14 +25,29 @@ struct RootView: View {
             }
             .toolbar { toolbar }
         }
+        .inspector(isPresented: $inspectorVisible) {
+            InspectorPlaceholderView(node: selectedNode)
+                .inspectorColumnWidth(min: 240, ideal: 300, max: 420)
+        }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 fullDiskAccess = PermissionsProbe.hasFullDiskAccess()
             }
         }
-        .inspector(isPresented: $inspectorVisible) {
-            InspectorPlaceholderView(node: selectedNode)
-                .inspectorColumnWidth(min: 240, ideal: 300, max: 420)
+        .onChange(of: controller.phase) { _, phase in
+            if case .done = phase, let result = controller.result, result.rootURL != lastRecordedRoot {
+                let entry = RecentsStore.Entry(
+                    url: result.rootURL,
+                    displayName: result.rootURL.lastPathComponent.isEmpty
+                        ? result.rootURL.path : result.rootURL.lastPathComponent,
+                    lastScanned: result.finishedAt,
+                    totalBytes: result.totalBytes
+                )
+                recents.record(entry)
+                lastRecordedRoot = result.rootURL
+                drillStack = []
+                selectedNode = nil
+            }
         }
         .fileImporter(
             isPresented: $showFolderImporter,
@@ -34,10 +55,26 @@ struct RootView: View {
             allowsMultipleSelection: false
         ) { result in
             if case let .success(urls) = result, let url = urls.first {
-                selectedNode = nil
-                controller.scan(url: url)
+                startScan(url: url)
             }
         }
+        .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+            for provider in providers {
+                _ = provider.loadObject(ofClass: URL.self) { url, _ in
+                    if let url, url.hasDirectoryPath {
+                        DispatchQueue.main.async { startScan(url: url) }
+                    }
+                }
+            }
+            return true
+        }
+    }
+
+    private func startScan(url: URL) {
+        selectedNode = nil
+        highlightedKind = nil
+        drillStack = []
+        controller.scan(url: url)
     }
 
     // MARK: - Sidebar
@@ -45,17 +82,17 @@ struct RootView: View {
     @ViewBuilder
     private var sidebar: some View {
         List {
-            Section("Drives") {
-                Label("No volumes yet", systemImage: "externaldrive")
-                    .foregroundStyle(.secondary)
+            DrivesSection(volumes: volumeService.volumes) { url in
+                startScan(url: url)
             }
-            Section("Recent Scans") {
-                Label("No recent scans", systemImage: "clock")
-                    .foregroundStyle(.secondary)
-            }
+            RecentsSection(
+                entries: recents.entries,
+                onPick: { url in startScan(url: url) },
+                onClear: { recents.clear() }
+            )
         }
         .listStyle(.sidebar)
-        .navigationSplitViewColumnWidth(min: 180, ideal: 220, max: 320)
+        .navigationSplitViewColumnWidth(min: 200, ideal: 240, max: 340)
     }
 
     // MARK: - Detail
@@ -71,13 +108,29 @@ struct RootView: View {
             }
         case .done:
             if let result = controller.result {
+                let displayedRoot = drillStack.last ?? result.root
                 ContentSplitView(
-                    root: result.root,
-                    selectedNode: $selectedNode
+                    root: displayedRoot,
+                    selectedNode: $selectedNode,
+                    highlightedKind: $highlightedKind,
+                    kindsBarVisible: kindsBarVisible,
+                    drillStack: drillStack,
+                    onDrillIn: { node in
+                        if node.isContainer {
+                            drillStack.append(node)
+                            selectedNode = nil
+                        }
+                    },
+                    onDrillUp: { count in
+                        let target = max(0, drillStack.count - count)
+                        drillStack.removeLast(drillStack.count - target)
+                        selectedNode = nil
+                    },
+                    rootName: result.rootURL.lastPathComponent.isEmpty
+                        ? result.rootURL.path
+                        : result.rootURL.lastPathComponent
                 )
-                .navigationTitle(result.rootURL.lastPathComponent.isEmpty
-                                 ? result.rootURL.path
-                                 : result.rootURL.lastPathComponent)
+                .navigationTitle(displayedRoot.displayName)
                 .navigationSubtitle(summary(for: result))
             } else {
                 EmptyStateView { showFolderImporter = true }
@@ -114,6 +167,13 @@ struct RootView: View {
             .keyboardShortcut("o", modifiers: .command)
 
             Button {
+                kindsBarVisible.toggle()
+            } label: {
+                Label("Kinds", systemImage: "list.bullet.rectangle")
+            }
+            .help("Toggle Kinds bar")
+
+            Button {
                 inspectorVisible.toggle()
             } label: {
                 Label("Inspector", systemImage: "sidebar.right")
@@ -124,20 +184,167 @@ struct RootView: View {
     }
 }
 
+// MARK: - Sidebar sections
+
+struct DrivesSection: View {
+    let volumes: [VolumeInfo]
+    var onSelect: (URL) -> Void
+
+    var body: some View {
+        Section("Drives") {
+            if volumes.isEmpty {
+                Label("No volumes mounted", systemImage: "externaldrive")
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(volumes, id: \.url) { volume in
+                    Button {
+                        onSelect(volume.url)
+                    } label: {
+                        Label {
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(volume.name).lineLimit(1)
+                                if volume.totalCapacity > 0 {
+                                    Text("\(ByteFormatter.format(volume.availableForImportant)) free of \(ByteFormatter.format(volume.totalCapacity))")
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        } icon: {
+                            Image(systemName: volume.isRemovable
+                                  ? "externaldrive.fill"
+                                  : "externaldrive.fill.badge.checkmark")
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+}
+
+struct RecentsSection: View {
+    let entries: [RecentsStore.Entry]
+    var onPick: (URL) -> Void
+    var onClear: () -> Void
+
+    var body: some View {
+        Section {
+            if entries.isEmpty {
+                Label("No recent scans", systemImage: "clock")
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(entries) { entry in
+                    Button {
+                        onPick(entry.url)
+                    } label: {
+                        Label {
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(entry.displayName).lineLimit(1)
+                                Text(ByteFormatter.format(entry.totalBytes))
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "clock")
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        } header: {
+            HStack {
+                Text("Recent Scans")
+                Spacer()
+                if !entries.isEmpty {
+                    Button("Clear", action: onClear)
+                        .buttonStyle(.plain)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+}
+
 // MARK: - Content split
 
 struct ContentSplitView: View {
     let root: FSNode
     @Binding var selectedNode: FSNode?
+    @Binding var highlightedKind: FileKind.ID?
+    let kindsBarVisible: Bool
+    let drillStack: [FSNode]
+    var onDrillIn: (FSNode) -> Void
+    var onDrillUp: (Int) -> Void
+    let rootName: String
+
+    @State private var aggregates: [KindAggregate] = []
 
     var body: some View {
-        VSplitView {
-            OutlineTreeView(root: root, selectedNode: $selectedNode)
+        VStack(spacing: 0) {
+            if !drillStack.isEmpty {
+                breadcrumbs
+            }
+            VSplitView {
+                OutlineHost(
+                    root: root,
+                    selectedNode: $selectedNode
+                )
                 .frame(minHeight: 160, idealHeight: 280)
-            TreemapHost(root: root, selectedNode: $selectedNode)
+                TreemapHost(
+                    root: root,
+                    selectedNode: $selectedNode,
+                    highlightedKind: highlightedKind,
+                    onDrillIn: onDrillIn
+                )
                 .frame(minHeight: 200, idealHeight: 360)
                 .background(Color(nsColor: .windowBackgroundColor))
+            }
+            if kindsBarVisible {
+                KindsBarView(
+                    aggregates: aggregates,
+                    totalBytes: max(root.physicalSize, 1),
+                    highlightedKind: $highlightedKind
+                )
+            }
         }
+        .task(id: ObjectIdentifier(root)) {
+            aggregates = KindsAggregator.aggregate(root)
+        }
+    }
+
+    @ViewBuilder
+    private var breadcrumbs: some View {
+        HStack(spacing: 4) {
+            Button(rootName) {
+                onDrillUp(drillStack.count)
+            }
+            .buttonStyle(.link)
+            ForEach(Array(drillStack.enumerated()), id: \.offset) { index, node in
+                Image(systemName: "chevron.right")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                if index == drillStack.count - 1 {
+                    Text(node.displayName).bold()
+                } else {
+                    Button(node.displayName) {
+                        onDrillUp(drillStack.count - index - 1)
+                    }
+                    .buttonStyle(.link)
+                }
+            }
+            Spacer()
+        }
+        .font(.callout)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(.thinMaterial)
+        .overlay(
+            Rectangle()
+                .frame(height: 0.5)
+                .foregroundStyle(.separator),
+            alignment: .bottom
+        )
     }
 }
 
@@ -153,7 +360,7 @@ struct EmptyStateView: View {
                 .foregroundStyle(.secondary)
             Text("No scan yet")
                 .font(.title2)
-            Text("Choose a folder or volume to begin scanning.")
+            Text("Choose a folder or volume to begin scanning. You can also drop a folder onto this window.")
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 360)
@@ -360,5 +567,5 @@ private struct InspectorContent: View {
 
 #Preview {
     RootView()
-        .frame(width: 1100, height: 700)
+        .frame(width: 1200, height: 800)
 }

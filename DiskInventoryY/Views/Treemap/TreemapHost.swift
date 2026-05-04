@@ -5,6 +5,8 @@ import AppKit
 struct TreemapHost: NSViewRepresentable {
     let root: FSNode
     @Binding var selectedNode: FSNode?
+    var highlightedKind: FileKind.ID?
+    var onDrillIn: ((FSNode) -> Void)? = nil
 
     func makeNSView(context: Context) -> TreemapNSView {
         let view = TreemapNSView()
@@ -12,6 +14,11 @@ struct TreemapHost: NSViewRepresentable {
         view.onSelect = { node in
             DispatchQueue.main.async {
                 self.selectedNode = node
+            }
+        }
+        view.onDrillIn = { node in
+            DispatchQueue.main.async {
+                self.onDrillIn?(node)
             }
         }
         return view
@@ -22,5 +29,17 @@ struct TreemapHost: NSViewRepresentable {
             nsView.root = root
         }
         nsView.selectedNodeID = selectedNode.map(ObjectIdentifier.init)
+        nsView.highlightedKindID = highlightedKind
+        // Keep the closures fresh in case the parent's binding changed.
+        nsView.onSelect = { node in
+            DispatchQueue.main.async {
+                self.selectedNode = node
+            }
+        }
+        nsView.onDrillIn = { node in
+            DispatchQueue.main.async {
+                self.onDrillIn?(node)
+            }
+        }
     }
 }
