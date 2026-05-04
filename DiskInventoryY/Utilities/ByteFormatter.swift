@@ -1,16 +1,20 @@
 import Foundation
 
-/// Thin wrapper over `ByteCountFormatStyle`. Default style mirrors
-/// what Finder shows in column view (decimal, file-style).
+/// Thin wrapper over `ByteCountFormatStyle`. Honors the `binary` /
+/// `decimal` user preference at runtime.
 enum ByteFormatter {
-    static let file = ByteCountFormatStyle(
-        style: .file,
-        allowedUnits: .all,
-        spellsOutZero: false,
-        includesActualByteCount: false
-    )
+    enum Unit: String, Sendable {
+        case binary  // 1 KiB = 1024 B
+        case decimal // 1 KB  = 1000 B
+    }
 
-    static func format(_ bytes: Int64) -> String {
-        bytes.formatted(file)
+    static func format(_ bytes: Int64, unit: Unit = .binary) -> String {
+        let style = ByteCountFormatStyle(
+            style: unit == .binary ? .memory : .file,
+            allowedUnits: .all,
+            spellsOutZero: false,
+            includesActualByteCount: false
+        )
+        return bytes.formatted(style)
     }
 }

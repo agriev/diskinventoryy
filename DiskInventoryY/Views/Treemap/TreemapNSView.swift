@@ -17,6 +17,21 @@ final class TreemapNSView: NSView, NSDraggingSource {
         didSet { needsDisplay = true }
     }
 
+    /// 0 = no shading, 1 = strong cushion. Read from AppSettings.
+    var cushionIntensity: CGFloat = 0.7 {
+        didSet { needsDisplay = true }
+    }
+
+    /// 0 = uniform, ~0.4 = strong per-depth darkening.
+    var depthContrast: CGFloat = 0.15 {
+        didSet { needsDisplay = true }
+    }
+
+    /// Whether to size cells by physical (allocated) or logical size.
+    var sizeMetric: TreemapLayout.SizeMetric = .physical {
+        didSet { rebuildLayout() }
+    }
+
     /// Identity of the FSNode that should be highlighted, if any.
     var selectedNodeID: ObjectIdentifier? {
         didSet { needsDisplay = true }
@@ -86,11 +101,9 @@ final class TreemapNSView: NSView, NSDraggingSource {
             needsDisplay = true
             return
         }
-        cells = TreemapLayout.layout(
-            root: root,
-            bounds: bounds,
-            options: TreemapLayout.Options.default
-        )
+        var options = TreemapLayout.Options.default
+        options.sizeMetric = sizeMetric
+        cells = TreemapLayout.layout(root: root, bounds: bounds, options: options)
         rebuildNodeIndex(root: root)
         needsDisplay = true
     }
@@ -133,7 +146,7 @@ final class TreemapNSView: NSView, NSDraggingSource {
             context.setFillColor(finalColor.cgColor)
             context.fill(cell.rect)
 
-            if cushion, !dimmed, cell.rect.width >= 6, cell.rect.height >= 6 {
+            if cushion, !dimmed, cushionIntensity > 0.01, cell.rect.width >= 6, cell.rect.height >= 6 {
                 drawCushion(in: cell.rect, context: context, isDark: isDark)
             }
 
@@ -169,7 +182,8 @@ final class TreemapNSView: NSView, NSDraggingSource {
         defer { context.restoreGState() }
         context.clip(to: rect)
         context.setBlendMode(.multiply)
-        let intensity: CGFloat = isDark ? 0.10 : 0.18
+        let baseIntensity: CGFloat = isDark ? 0.10 : 0.18
+        let intensity = baseIntensity * cushionIntensity
         let colors = [
             NSColor(white: 1.0, alpha: 1.0 - intensity * 0.5).cgColor,
             NSColor(white: 1.0 - intensity, alpha: 1.0).cgColor,
@@ -188,8 +202,9 @@ final class TreemapNSView: NSView, NSDraggingSource {
     }
 
     private func colorAdjustedForDepth(_ color: NSColor, depth: UInt8, isDark: Bool) -> NSColor {
-        let darkenStep: CGFloat = 0.05
-        let attenuation = min(CGFloat(depth) * darkenStep, 0.4)
+        // Per-depth darkening proportional to user-controlled contrast.
+        let perDepth = depthContrast / 3.0
+        let attenuation = min(CGFloat(depth) * perDepth, depthContrast)
         let factor: CGFloat = isDark ? (1.0 - attenuation * 0.5) : (1.0 - attenuation)
         let resolved = color.usingColorSpace(.deviceRGB) ?? color
         return NSColor(
@@ -223,28 +238,52 @@ final class TreemapNSView: NSView, NSDraggingSource {
         if newID != hoveredNodeID {
             hoveredNodeID = newID
             needsDisplay = true
-            if let hit { toolTip = "\(hit.displayName) — \(ByteFormatter.format(hit.physicalSize))" }
-            else { toolTip = nil }
+            toolTip = hit.map(Self.tooltipText(for:))
         }
+    }
+
+    /// Multi-line tooltip with name, size, kind and the full path so
+    /// users can reason about what they're hovering without clicking.
+    private static func tooltipText(for node: FSNode) -> String {
+        let kindLabel = node.kindID.capitalized
+        let physical = ByteFormatter.format(node.physicalSize)
+        let logical = ByteFormatter.format(node.logicalSize)
+        var lines: [String] = [node.displayName]
+        if node.physicalSize != node.logicalSize {
+            lines.append("\(physical) on disk · \(logical) logical · \(kindLabel)")
+        } else {
+            lines.append("\(physical) · \(kindLabel)")
+        }
+        lines.append(node.url.path)
+        return lines.joined(separator: "\n")
     }
 
     override func mouseDown(with event: NSEvent) {
         let local = convert(event.locationInWindow, from: nil)
-        dragStartPoint = local
         let hit = hitTestCell(at: local)
         onSelect?(hit)
         if let hit { selectedNodeID = ObjectIdentifier(hit) }
-        if event.clickCount >= 2, let hit {
-            let target: FSNode? = {
-                if hit.isContainer { return hit }
-                var cursor = hit.parent
-                while let node = cursor {
-                    if node.isContainer { return node }
-                    cursor = node.parent
-                }
-                return nil
-            }()
-            if let target { onDrillIn?(target) }
+
+        if event.clickCount >= 2 {
+            // Cancel any pending drag started by the previous mouseDown
+            // so a stray pointer movement between clicks doesn't kick
+            // off a drag-out and have the dropped URL re-open as a
+            // new scan window.
+            dragStartPoint = nil
+            if let hit {
+                let target: FSNode? = {
+                    if hit.isContainer { return hit }
+                    var cursor = hit.parent
+                    while let node = cursor {
+                        if node.isContainer { return node }
+                        cursor = node.parent
+                    }
+                    return nil
+                }()
+                if let target { onDrillIn?(target) }
+            }
+        } else {
+            dragStartPoint = local
         }
     }
 

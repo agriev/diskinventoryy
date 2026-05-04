@@ -2,7 +2,9 @@
 
 A modern disk inventory tool for macOS, written in Swift and SwiftUI. Treemap-based visualization of disk usage, ground-up rewrite of [Disk Inventory X](https://gitlab.com/tderlien/disk-inventory-x).
 
-> Status: **v0.4.0** — proper AppIcon (squircle with a stylized squarified-treemap top, Y-shape negative space, light SSD silhouette). Plus everything from v0.3.0 (multi-window, NSOutlineView host, cushion-shaded treemap, drag-out file URLs, drill-in/breadcrumbs, live volumes sidebar, recents, Kinds bar). Outstanding: `getattrlistbulk(2)` fast path, signed/notarized release builds.
+> Status: **v0.5.0** — UX polish & fixes: double-click in treemap drills in (no longer triggers a self-drop new-window scan); rich hover tooltips with name/size/kind/full path; Settings actually wired (hidden files, package contents, size unit, cushion intensity, depth contrast, size mode logical/physical); Refresh in toolbar (⌘R); tooltips everywhere. Plus the v0.4.0 AppIcon, multi-window, NSOutlineView, cushion treemap, KindsBar, sidebar volumes/recents.
+>
+> Landing page: <https://agriev.github.io/diskinventoryy/>. Outstanding: `getattrlistbulk(2)` fast path, signed/notarized release builds.
 
 ## Requirements
 

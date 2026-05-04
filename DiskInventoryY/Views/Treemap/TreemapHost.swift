@@ -6,11 +6,17 @@ struct TreemapHost: NSViewRepresentable {
     let root: FSNode
     @Binding var selectedNode: FSNode?
     var highlightedKind: FileKind.ID?
+    var cushionIntensity: Double = 0.7
+    var depthContrast: Double = 0.15
+    var sizeMetric: TreemapLayout.SizeMetric = .physical
     var onDrillIn: ((FSNode) -> Void)? = nil
 
     func makeNSView(context: Context) -> TreemapNSView {
         let view = TreemapNSView()
         view.root = root
+        view.cushionIntensity = CGFloat(cushionIntensity)
+        view.depthContrast = CGFloat(depthContrast)
+        view.sizeMetric = sizeMetric
         view.onSelect = { node in
             DispatchQueue.main.async {
                 self.selectedNode = node
@@ -28,6 +34,11 @@ struct TreemapHost: NSViewRepresentable {
         if nsView.root !== root {
             nsView.root = root
         }
+        if nsView.sizeMetric != sizeMetric {
+            nsView.sizeMetric = sizeMetric
+        }
+        nsView.cushionIntensity = CGFloat(cushionIntensity)
+        nsView.depthContrast = CGFloat(depthContrast)
         nsView.selectedNodeID = selectedNode.map(ObjectIdentifier.init)
         nsView.highlightedKindID = highlightedKind
         // Keep the closures fresh in case the parent's binding changed.

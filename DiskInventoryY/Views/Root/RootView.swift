@@ -7,6 +7,7 @@ struct RootView: View {
     @State private var volumeService = VolumeService()
     @State private var recents = RecentsStore.shared
     @State private var registry = ScanRegistry.shared
+    @State private var settings = AppSettings.shared
     @State private var showFolderImporter = false
     @State private var inspectorVisible = false
     @State private var kindsBarVisible = true
@@ -79,7 +80,7 @@ struct RootView: View {
         .onDrop(of: [.fileURL], isTargeted: nil) { providers in
             for provider in providers {
                 _ = provider.loadObject(ofClass: URL.self) { url, _ in
-                    if let url, url.hasDirectoryPath {
+                    if let url, url.hasDirectoryPath, !urlBelongsToCurrentScan(url) {
                         DispatchQueue.main.async { openScan(url: url) }
                     }
                 }
@@ -88,16 +89,30 @@ struct RootView: View {
         }
     }
 
+    /// True if `url` is the currently scanned root or one of its
+    /// descendants — i.e. the user is dragging a folder cell from the
+    /// treemap onto the same window. We swallow those so the drop
+    /// doesn't accidentally start a new scan of the same tree.
+    private func urlBelongsToCurrentScan(_ url: URL) -> Bool {
+        guard let rootURL = controller?.result?.rootURL else { return false }
+        let target = url.standardizedFileURL.path
+        let rootPath = rootURL.standardizedFileURL.path
+        return target == rootPath || target.hasPrefix(rootPath + "/")
+    }
+
     /// Either run the scan in this window (when it's the empty landing
     /// window) or open a new window for the new scan.
     private func openScan(url: URL) {
-        let id = registry.startNewScan(url: url)
-        if scanID == nil {
-            // Replace this empty landing window with the new scan.
-            openWindow(value: ScanID?.some(id))
-        } else {
-            openWindow(value: ScanID?.some(id))
-        }
+        let id = registry.startNewScan(url: url, options: settings.scanOptions)
+        openWindow(value: ScanID?.some(id))
+    }
+
+    /// Re-scan the currently shown root in the same window.
+    private func refreshScan() {
+        guard let controller, let url = controller.result?.rootURL ?? controller.rootURL else { return }
+        selectedNode = nil
+        drillStack = []
+        controller.scan(url: url, options: settings.scanOptions)
     }
 
     // MARK: - Sidebar
@@ -147,6 +162,9 @@ struct RootView: View {
                     highlightedKind: $highlightedKind,
                     kindsBarVisible: kindsBarVisible,
                     drillStack: drillStack,
+                    cushionIntensity: settings.cushionIntensity,
+                    depthContrast: settings.depthContrast,
+                    sizeMetric: settings.sizeMode == .logical ? .logical : .physical,
                     onDrillIn: { node in
                         if node.isContainer {
                             drillStack.append(node)
@@ -195,22 +213,31 @@ struct RootView: View {
             } label: {
                 Label("Open Folder", systemImage: "folder.badge.plus")
             }
-            .help("Choose a folder or volume to scan")
+            .help("Open a folder or volume to scan (⌘O)")
             .keyboardShortcut("o", modifiers: .command)
+
+            Button {
+                refreshScan()
+            } label: {
+                Label("Refresh", systemImage: "arrow.clockwise")
+            }
+            .help("Re-scan the current root (⌘R)")
+            .keyboardShortcut("r", modifiers: .command)
+            .disabled(controller?.result?.rootURL == nil && controller?.rootURL == nil)
 
             Button {
                 kindsBarVisible.toggle()
             } label: {
                 Label("Kinds", systemImage: "list.bullet.rectangle")
             }
-            .help("Toggle Kinds bar")
+            .help("Show or hide the Kinds bar")
 
             Button {
                 inspectorVisible.toggle()
             } label: {
                 Label("Inspector", systemImage: "sidebar.right")
             }
-            .help("Toggle inspector")
+            .help("Show or hide the Inspector (⌃⌘I)")
             .keyboardShortcut("i", modifiers: [.command, .control])
         }
     }
@@ -248,6 +275,7 @@ struct DrivesSection: View {
                         }
                     }
                     .buttonStyle(.plain)
+                    .help("Scan \(volume.name) (\(volume.url.path))")
                 }
             }
         }
@@ -281,6 +309,7 @@ struct RecentsSection: View {
                         }
                     }
                     .buttonStyle(.plain)
+                    .help("Re-scan \(entry.url.path)")
                 }
             }
         } header: {
@@ -306,6 +335,9 @@ struct ContentSplitView: View {
     @Binding var highlightedKind: FileKind.ID?
     let kindsBarVisible: Bool
     let drillStack: [FSNode]
+    let cushionIntensity: Double
+    let depthContrast: Double
+    let sizeMetric: TreemapLayout.SizeMetric
     var onDrillIn: (FSNode) -> Void
     var onDrillUp: (Int) -> Void
     let rootName: String
@@ -327,6 +359,9 @@ struct ContentSplitView: View {
                     root: root,
                     selectedNode: $selectedNode,
                     highlightedKind: highlightedKind,
+                    cushionIntensity: cushionIntensity,
+                    depthContrast: depthContrast,
+                    sizeMetric: sizeMetric,
                     onDrillIn: onDrillIn
                 )
                 .frame(minHeight: 200, idealHeight: 360)
@@ -335,7 +370,7 @@ struct ContentSplitView: View {
             if kindsBarVisible {
                 KindsBarView(
                     aggregates: aggregates,
-                    totalBytes: max(root.physicalSize, 1),
+                    totalBytes: max(sizeMetric == .logical ? root.logicalSize : root.physicalSize, 1),
                     highlightedKind: $highlightedKind
                 )
             }
@@ -401,6 +436,7 @@ struct EmptyStateView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
+            .help("Choose a folder or volume to scan")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -536,6 +572,7 @@ private struct InspectorContent: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
+            .help("Show this item in Finder")
 
             Button {
                 FileActions.quickLook(node.url)
@@ -544,6 +581,7 @@ private struct InspectorContent: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
+            .help("Preview with Quick Look")
 
             Button {
                 FileActions.openWithDefaultApp(node.url)
@@ -553,6 +591,7 @@ private struct InspectorContent: View {
             .buttonStyle(.bordered)
             .controlSize(.small)
             .disabled(!node.isContainer && node.fileType == .directory)
+            .help("Open with the system default application")
 
             Button(role: .destructive) {
                 trashError = nil
@@ -563,6 +602,7 @@ private struct InspectorContent: View {
             .buttonStyle(.bordered)
             .controlSize(.small)
             .disabled(node.isSynthetic)
+            .help("Move this item to the system Trash")
         }
     }
 

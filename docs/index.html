@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DiskInventoryY — modern disk usage analyzer for macOS</title>
+<meta name="description" content="A from-scratch Swift/SwiftUI rewrite of Disk Inventory X for macOS 14+. Treemap visualization, color-by-kind, drill-in, multi-window. Apple Silicon native.">
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #fafafa;
+    --fg: #1a1a1a;
+    --muted: #6b6b6b;
+    --accent: #0a84ff;
+    --card: #fff;
+    --border: rgba(0,0,0,0.08);
+    --code: #f3f3f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15151a;
+      --fg: #f0f0f3;
+      --muted: #9a9aa8;
+      --accent: #0a84ff;
+      --card: #1f1f25;
+      --border: rgba(255,255,255,0.08);
+      --code: #25252c;
+    }
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .container { max-width: 880px; margin: 0 auto; padding: 64px 24px 80px; }
+  header { text-align: center; margin-bottom: 56px; }
+  header img.icon { width: 144px; height: 144px; image-rendering: -webkit-optimize-contrast; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.15)); }
+  header h1 { font-size: 44px; margin: 24px 0 8px; font-weight: 700; letter-spacing: -0.02em; }
+  header p.tagline { font-size: 19px; color: var(--muted); margin: 0 0 24px; }
+  .download {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 14px 28px;
+    border-radius: 999px;
+    font-size: 17px;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    box-shadow: 0 4px 16px rgba(10,132,255,0.25);
+  }
+  .download:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(10,132,255,0.35); }
+  .download:active { transform: translateY(0); }
+  .download .arrow { font-size: 14px; opacity: 0.85; }
+  .meta {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .meta a { color: var(--muted); }
+  section { margin: 48px 0; }
+  section h2 { font-size: 22px; margin: 0 0 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .feature {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 18px 16px;
+  }
+  .feature h3 { margin: 0 0 6px; font-size: 15px; font-weight: 600; }
+  .feature p { margin: 0; color: var(--muted); font-size: 14px; }
+  .feature .symbol { font-size: 22px; line-height: 1; margin-bottom: 12px; }
+  .req { display: grid; grid-template-columns: max-content 1fr; gap: 8px 16px; font-size: 14px; }
+  .req dt { color: var(--muted); }
+  pre, code { background: var(--code); border-radius: 6px; }
+  pre { padding: 12px 14px; overflow-x: auto; font-size: 13px; }
+  code { padding: 1px 5px; font-size: 13px; }
+  .links { display: flex; flex-wrap: wrap; gap: 18px; font-size: 14px; }
+  .links a { color: var(--accent); text-decoration: none; }
+  .links a:hover { text-decoration: underline; }
+  footer { color: var(--muted); font-size: 13px; text-align: center; margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border); }
+  footer a { color: var(--muted); }
+  .gatekeeper {
+    margin-top: 32px;
+    padding: 16px 18px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .gatekeeper strong { color: var(--fg); }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <img class="icon" src="icon.png" alt="DiskInventoryY app icon">
+    <h1>DiskInventoryY</h1>
+    <p class="tagline">A modern disk usage analyzer for macOS — Apple Silicon native, treemap visualization, multi-window.</p>
+    <a class="download" id="download" href="https://github.com/agriev/diskinventoryy/releases/latest">
+      <span>Download for macOS</span><span class="arrow">▾</span>
+    </a>
+    <div class="meta">
+      Latest: <span id="version">v0.4.0</span> ·
+      <a id="all-releases" href="https://github.com/agriev/diskinventoryy/releases">All releases</a> ·
+      <a href="https://github.com/agriev/diskinventoryy">Source</a>
+    </div>
+  </header>
+
+  <section>
+    <h2>What it does</h2>
+    <div class="grid">
+      <div class="feature">
+        <div class="symbol">🗺️</div>
+        <h3>Squarified treemap</h3>
+        <p>Every file shown as a colored cell sized by how much disk it takes. Color-by-kind (images, code, video, …) so big offenders pop out instantly.</p>
+      </div>
+      <div class="feature">
+        <div class="symbol">🔍</div>
+        <h3>Outline + inspector</h3>
+        <p>NSOutlineView with sortable columns syncs with the treemap. Inspector panel shows physical &amp; logical sizes, kind, modified date, and one-click Reveal / Open / Quick Look / Trash.</p>
+      </div>
+      <div class="feature">
+        <div class="symbol">🪟</div>
+        <h3>Multi-window</h3>
+        <p>Each scan opens in its own restorable window. ⌘N starts a new scan; the empty landing window stays clean.</p>
+      </div>
+      <div class="feature">
+        <div class="symbol">🎯</div>
+        <h3>Kinds bar with one-tap filter</h3>
+        <p>Tap any kind in the bottom bar to dim everything else in the treemap to 18% — instantly see where your images / videos / archives live.</p>
+      </div>
+      <div class="feature">
+        <div class="symbol">🌑</div>
+        <h3>Dark Mode aware</h3>
+        <p>Cushion shading and per-depth contrast adapt automatically. Reduce Transparency / Reduce Motion respected.</p>
+      </div>
+      <div class="feature">
+        <div class="symbol">🔒</div>
+        <h3>Privacy by default</h3>
+        <p>Runs entirely on-device. No telemetry, no crash reports, no network.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Requirements</h2>
+    <dl class="req">
+      <dt>macOS</dt>
+      <dd>Sonoma 14.0 or later</dd>
+      <dt>Architecture</dt>
+      <dd>Apple Silicon or Intel (universal)</dd>
+      <dt>Full Disk Access</dt>
+      <dd>Optional — needed to scan TCC-protected paths (Mail, Messages, system Library). The app surfaces a banner with a one-click deep link.</dd>
+      <dt>License</dt>
+      <dd>GPL-3.0-or-later</dd>
+    </dl>
+    <div class="gatekeeper">
+      <strong>First launch:</strong> the current builds are ad-hoc-signed (not yet notarized). Right-click the app in Finder and choose <em>Open</em> the first time, or run <code>xattr -dr com.apple.quarantine /Applications/DiskInventoryY.app</code>. Notarized signed builds are coming.
+    </div>
+  </section>
+
+  <section>
+    <h2>Origin</h2>
+    <p>DiskInventoryY is a from-scratch Swift/SwiftUI rewrite of <a href="https://gitlab.com/tderlien/disk-inventory-x">Disk Inventory X</a> by Tjark Derlien, originally released in 2003. The squarified treemap layout follows the algorithm popularized by <a href="https://kdirstat.sourceforge.net/">KDirStat</a> (Stefan Hundhammer) and described in Bruls / Huijsen / van Wijk's 2000 paper.</p>
+  </section>
+
+  <section>
+    <h2>Build from source</h2>
+    <pre><code>git clone https://github.com/agriev/diskinventoryy.git
+cd diskinventoryy
+brew install xcodegen   # one-time
+xcodegen generate
+open DiskInventoryY.xcodeproj</code></pre>
+    <p style="color: var(--muted); font-size: 14px;">No third-party dependencies. Tests run with <code>⌘U</code>.</p>
+  </section>
+
+  <section>
+    <h2>Links</h2>
+    <div class="links">
+      <a href="https://github.com/agriev/diskinventoryy">Source code</a>
+      <a href="https://github.com/agriev/diskinventoryy/releases">All releases</a>
+      <a href="https://github.com/agriev/diskinventoryy/issues">Issues</a>
+      <a href="https://github.com/agriev/diskinventoryy/blob/main/LICENSE">License (GPL-3.0)</a>
+      <a href="https://github.com/agriev/diskinventoryy/blob/main/NOTICE">Acknowledgements</a>
+    </div>
+  </section>
+
+  <footer>
+    © 2026 DiskInventoryY contributors · GPL-3.0-or-later · Built with care on Apple Silicon.
+  </footer>
+</div>
+<script>
+  // Populate "Download" with the actual latest .dmg from GitHub.
+  fetch('https://api.github.com/repos/agriev/diskinventoryy/releases/latest', { headers: { Accept: 'application/vnd.github+json' } })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (data) {
+      var dmg = (data.assets || []).find(function (a) { return /\.dmg$/i.test(a.name); });
+      var dl = document.getElementById('download');
+      var ver = document.getElementById('version');
+      if (data.tag_name) ver.textContent = data.tag_name;
+      if (dmg) {
+        dl.href = dmg.browser_download_url;
+        dl.querySelector('span:first-child').textContent = 'Download ' + (data.tag_name || 'latest') + ' for macOS';
+      }
+    })
+    .catch(function () { /* leave placeholders */ });
+</script>
+</body>
+</html>

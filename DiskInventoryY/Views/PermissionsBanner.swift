@@ -27,12 +27,14 @@ struct PermissionsBanner: View {
                 PermissionsProbe.openSystemSettings()
             }
             .controlSize(.small)
+            .help("Open System Settings → Privacy & Security → Full Disk Access")
             Button {
                 granted = PermissionsProbe.hasFullDiskAccess()
             } label: {
                 Label("Re-check", systemImage: "arrow.clockwise")
             }
             .controlSize(.small)
+            .help("Re-probe Full Disk Access after granting it in System Settings")
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)

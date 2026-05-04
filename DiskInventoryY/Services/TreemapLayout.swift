@@ -19,6 +19,18 @@ struct TreemapCell: Sendable, Hashable {
 /// independently of any view.
 enum TreemapLayout {
 
+    enum SizeMetric: Sendable {
+        case physical
+        case logical
+
+        func value(of node: FSNode) -> Int64 {
+            switch self {
+            case .physical: return node.physicalSize
+            case .logical:  return node.logicalSize
+            }
+        }
+    }
+
     struct Options: Sendable {
         /// Pixels of inset per depth — creates the visible border that
         /// separates parent and child levels. Set to 0 to disable.
@@ -28,6 +40,9 @@ enum TreemapLayout {
         var minLeafEdge: CGFloat = 1
         /// Hard depth cutoff to stop layout in pathological trees.
         var maxDepth: UInt8 = 32
+        /// Whether to size cells by physical (allocated) size or
+        /// logical size. Mirrors the `sizeMode` user preference.
+        var sizeMetric: SizeMetric = .physical
 
         static let `default` = Options()
     }
@@ -57,13 +72,14 @@ enum TreemapLayout {
     ) {
         guard rect.width >= options.minLeafEdge, rect.height >= options.minLeafEdge else { return }
 
+        let sizeOf = options.sizeMetric.value
         // Emit the cell for this node before recursing — we want the
         // parent rectangle visible behind the children.
         cells.append(TreemapCell(
             nodeID: ObjectIdentifier(node),
             rect: rect,
             depth: depth,
-            size: max(node.physicalSize, 0)
+            size: max(sizeOf(node), 0)
         ))
 
         guard depth < options.maxDepth, !node.children.isEmpty else { return }
@@ -73,11 +89,11 @@ enum TreemapLayout {
         guard inner.width > 0, inner.height > 0 else { return }
 
         let positiveChildren = node.children
-            .filter { $0.physicalSize > 0 }
-            .sorted { $0.physicalSize > $1.physicalSize }
+            .filter { sizeOf($0) > 0 }
+            .sorted { sizeOf($0) > sizeOf($1) }
         guard !positiveChildren.isEmpty else { return }
 
-        let total = positiveChildren.reduce(Int64(0)) { $0 &+ $1.physicalSize }
+        let total = positiveChildren.reduce(Int64(0)) { $0 &+ sizeOf($1) }
         guard total > 0 else { return }
 
         squarify(
@@ -104,6 +120,7 @@ enum TreemapLayout {
         var remainingSize = totalSize
         var index = 0
 
+        let sizeOf = options.sizeMetric.value
         while index < children.count {
             let shorterSide = min(container.width, container.height)
             guard shorterSide > 0 else { return }
@@ -111,8 +128,8 @@ enum TreemapLayout {
             // Build up a row by greedily appending children while the
             // worst aspect ratio improves (or stays equal).
             var row: [FSNode] = [children[index]]
-            var rowSize = children[index].physicalSize
-            var bestWorst = worst(row: [children[index].physicalSize],
+            var rowSize = sizeOf(children[index])
+            var bestWorst = worst(row: [rowSize],
                                   rowSize: rowSize,
                                   totalSize: remainingSize,
                                   shorterSide: shorterSide)
@@ -120,8 +137,9 @@ enum TreemapLayout {
             var lookahead = index + 1
             while lookahead < children.count {
                 let candidate = children[lookahead]
-                let trialSize = rowSize &+ candidate.physicalSize
-                let trialSizes = row.map(\.physicalSize) + [candidate.physicalSize]
+                let candidateSize = sizeOf(candidate)
+                let trialSize = rowSize &+ candidateSize
+                let trialSizes = row.map(sizeOf) + [candidateSize]
                 let trialWorst = worst(row: trialSizes,
                                        rowSize: trialSize,
                                        totalSize: remainingSize,
@@ -144,6 +162,7 @@ enum TreemapLayout {
                 container: &container,
                 depth: depth,
                 options: options,
+                sizeOf: sizeOf,
                 into: &cells
             )
 
@@ -168,6 +187,7 @@ enum TreemapLayout {
         container: inout CGRect,
         depth: UInt8,
         options: Options,
+        sizeOf: (FSNode) -> Int64,
         into cells: inout [TreemapCell]
     ) {
         guard !row.isEmpty, totalSize > 0 else { return }
@@ -180,7 +200,8 @@ enum TreemapLayout {
 
         var offset: CGFloat = 0
         for child in row {
-            let childFraction = CGFloat(Double(child.physicalSize) / Double(rowSize))
+            let childSize = sizeOf(child)
+            let childFraction = CGFloat(Double(childSize) / Double(rowSize))
             let span = shorterSide * childFraction
 
             let cellRect: CGRect
@@ -206,7 +227,7 @@ enum TreemapLayout {
                 nodeID: ObjectIdentifier(child),
                 rect: cellRect,
                 depth: depth,
-                size: child.physicalSize
+                size: childSize
             ))
         }
 

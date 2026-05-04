@@ -10,24 +10,25 @@ struct SettingsView: View {
             AdvancedSettingsView()
                 .tabItem { Label("Advanced", systemImage: "slider.horizontal.3") }
         }
-        .frame(width: 480, height: 320)
+        .frame(width: 480, height: 340)
     }
 }
 
 private struct GeneralSettingsView: View {
-    @AppStorage("showHidden") private var showHidden = false
-    @AppStorage("showPackageContents") private var showPackageContents = false
-    @AppStorage("sizeUnit") private var sizeUnit = "binary"
+    @Bindable var settings = AppSettings.shared
 
     var body: some View {
         Form {
-            Toggle("Show hidden files", isOn: $showHidden)
-            Toggle("Show package contents", isOn: $showPackageContents)
-            Picker("Size unit", selection: $sizeUnit) {
+            Toggle("Show hidden files", isOn: $settings.showHidden)
+                .help("Include dotfiles and hidden directories during scans")
+            Toggle("Show package contents", isOn: $settings.showPackageContents)
+                .help("Recurse into bundles like .app and .xcodeproj instead of treating them as leaves")
+            Picker("Size unit", selection: $settings.sizeUnitRaw) {
                 Text("Binary (1024)").tag("binary")
                 Text("Decimal (1000)").tag("decimal")
             }
             .pickerStyle(.segmented)
+            .help("How to format byte counts in the UI")
         }
         .formStyle(.grouped)
         .padding()
@@ -35,27 +36,28 @@ private struct GeneralSettingsView: View {
 }
 
 private struct TreemapSettingsView: View {
-    @AppStorage("cushionIntensity") private var cushionIntensity = 0.7
-    @AppStorage("depthContrast") private var depthContrast = 0.15
-    @AppStorage("animateZoom") private var animateZoom = true
-    @AppStorage("sizeMode") private var sizeMode = "physical"
+    @Bindable var settings = AppSettings.shared
 
     var body: some View {
         Form {
             VStack(alignment: .leading) {
-                Text("Cushion intensity: \(cushionIntensity, format: .number.precision(.fractionLength(2)))")
-                Slider(value: $cushionIntensity, in: 0...1)
+                Text("Cushion intensity: \(settings.cushionIntensity, format: .number.precision(.fractionLength(2)))")
+                Slider(value: $settings.cushionIntensity, in: 0...1)
+                    .help("How much top-left → bottom-right shading to apply per cell")
             }
             VStack(alignment: .leading) {
-                Text("Depth contrast: \(depthContrast, format: .number.precision(.fractionLength(2)))")
-                Slider(value: $depthContrast, in: 0...0.4)
+                Text("Depth contrast: \(settings.depthContrast, format: .number.precision(.fractionLength(2)))")
+                Slider(value: $settings.depthContrast, in: 0...0.4)
+                    .help("Per-depth darkening so nested folders stand out")
             }
-            Toggle("Animate drill-in", isOn: $animateZoom)
-            Picker("Size mode", selection: $sizeMode) {
+            Toggle("Animate drill-in", isOn: $settings.animateZoom)
+                .help("Cross-fade when zooming into a folder; ignored when Reduce Motion is on")
+            Picker("Size mode", selection: $settings.sizeModeRaw) {
                 Text("Logical").tag("logical")
                 Text("Physical on disk").tag("physical")
             }
             .pickerStyle(.segmented)
+            .help("Logical: file size as reported. Physical: bytes actually allocated on disk (APFS-compressed/sparse files differ).")
         }
         .formStyle(.grouped)
         .padding()
@@ -65,8 +67,15 @@ private struct TreemapSettingsView: View {
 private struct AdvancedSettingsView: View {
     var body: some View {
         Form {
-            Text("Telemetry: never collected. Privacy by default.")
-                .foregroundStyle(.secondary)
+            Section {
+                LabeledContent("Telemetry", value: "Never collected")
+                LabeledContent("Crash reports", value: "Never collected")
+                LabeledContent("Network", value: "Disabled")
+            } footer: {
+                Text("DiskInventoryY runs entirely on-device. No data leaves your machine.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
         }
         .formStyle(.grouped)
         .padding()

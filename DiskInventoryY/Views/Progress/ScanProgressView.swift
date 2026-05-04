@@ -33,6 +33,7 @@ struct ScanProgressView: View {
                 Label("Cancel", systemImage: "xmark.circle")
             }
             .buttonStyle(.borderedProminent)
+            .help("Stop the in-progress scan; the partial tree is kept")
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
