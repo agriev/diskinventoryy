@@ -32,6 +32,7 @@ actor DiskScanner {
 
     private(set) var state: State = .idle
     private let enumerator: any FilesystemEnumerating
+    private let fallbackEnumerator: any FilesystemEnumerating
     private let kindDetector: KindDetector
     private var workTask: Task<Void, Never>?
     private var continuation: AsyncStream<ScanProgress>.Continuation?
@@ -39,12 +40,18 @@ actor DiskScanner {
     /// 30 Hz throttle for outbound progress events.
     private var lastEmit: ContinuousClock.Instant = .now
     private static let emitInterval: Duration = .milliseconds(33)
+    /// Inodes already counted in this scan. Second-and-later sightings
+    /// of the same hardlink contribute zero physical bytes — that's
+    /// what `du` and KDirStat do; the original DIX double-counted.
+    private var seenInodes: Set<UInt64> = []
 
     init(
-        enumerator: any FilesystemEnumerating = FilesystemEnumeratorFallback(),
+        enumerator: any FilesystemEnumerating = FilesystemEnumeratorBulk(),
+        fallback: any FilesystemEnumerating = FilesystemEnumeratorFallback(),
         kindDetector: KindDetector = KindDetector()
     ) {
         self.enumerator = enumerator
+        self.fallbackEnumerator = fallback
         self.kindDetector = kindDetector
     }
 
@@ -57,6 +64,7 @@ actor DiskScanner {
         cancel()
         state = .idle
         progress = .zero
+        seenInodes.removeAll(keepingCapacity: true)
 
         let root = FSNode(
             url: rootURL,
@@ -131,20 +139,56 @@ actor DiskScanner {
             await emit(.scanning, currentURL: parent.url)
             await Task.yield()
 
-            let entries: [FSEntry]
+            var entries: [FSEntry]
             do {
                 entries = try enumerator.enumerate(directoryURL: parent.url)
             } catch let error as ScanError {
-                await record(error: error, on: parent)
-                continue
+                if case .noAccess = error {
+                    await record(error: error, on: parent)
+                    continue
+                }
+                // Bulk enumerator can choke on certain pseudo-fs
+                // (e.g. /dev). Fall back transparently.
+                do {
+                    entries = try fallbackEnumerator.enumerate(directoryURL: parent.url)
+                } catch let fallbackError as ScanError {
+                    await record(error: fallbackError, on: parent)
+                    continue
+                } catch {
+                    await record(error: .io(parent.url, error), on: parent)
+                    continue
+                }
             } catch {
-                await record(error: .io(parent.url, error), on: parent)
-                continue
+                do {
+                    entries = try fallbackEnumerator.enumerate(directoryURL: parent.url)
+                } catch {
+                    await record(error: .io(parent.url, error), on: parent)
+                    continue
+                }
             }
 
-            for entry in entries {
+            // The bulk enumerator doesn't know about bundles; promote
+            // directories whose UTI flags them as packages so the
+            // tree treats them as leaves (when descendIntoPackages
+            // is off).
+            promotePackages(in: &entries)
+
+            for var entry in entries {
                 if shouldSkip(entry: entry, parent: parent, options: options, rootVolumeID: rootVolumeID) {
                     continue
+                }
+
+                // Hardlink dedupe: a regular file referenced multiple
+                // times by hardlinks should only count once toward
+                // totals. Subsequent occurrences keep their nodes
+                // (so users can see them) but contribute zero bytes.
+                if entry.fileType == .regularFile, let inode = entry.inode {
+                    let inserted = seenInodes.insert(inode).inserted
+                    if !inserted {
+                        entry.flags.insert(.hardlinkDuplicate)
+                        entry.physicalSize = 0
+                        entry.logicalSize = 0
+                    }
                 }
 
                 let node = makeNode(from: entry)
@@ -160,7 +204,12 @@ actor DiskScanner {
                         stack.append(node)
                     }
                 default:
-                    totalFiles &+= 1
+                    // Hardlink duplicates count as zero unique files
+                    // and contribute zero bytes — same convention as
+                    // `du` and KDirStat.
+                    if !node.flags.contains(.hardlinkDuplicate) {
+                        totalFiles &+= 1
+                    }
                     totalBytes &+= node.physicalSize
                 }
             }
@@ -176,6 +225,20 @@ actor DiskScanner {
                        totalDirectories: totalDirectories,
                        totalBytes: totalBytes,
                        phase: .done)
+    }
+
+    /// One-shot UTI lookup per directory entry returned by the bulk
+    /// enumerator. The Foundation fallback already classifies bundles
+    /// itself, so this is a no-op when entries already carry
+    /// `.package`.
+    private nonisolated func promotePackages(in entries: inout [FSEntry]) {
+        for index in entries.indices where entries[index].fileType == .directory {
+            if let isPackage = try? entries[index].url
+                .resourceValues(forKeys: [.isPackageKey]).isPackage,
+               isPackage {
+                entries[index].fileType = .package
+            }
+        }
     }
 
     private func shouldSkip(

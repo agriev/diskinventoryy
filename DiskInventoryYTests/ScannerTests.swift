@@ -92,6 +92,37 @@ final class ScannerTests: XCTestCase {
         XCTAssertEqual(result.root.children.count, 2)
     }
 
+    func testHardlinkContributesPhysicalSizeOnce() async throws {
+        try fixture.file("real.bin", bytes: 5_000)
+        try fixture.hardlink(from: "real.bin", to: "alias.bin")
+        try fixture.hardlink(from: "real.bin", to: "nested/alias2.bin")
+
+        let result = try await runScan(at: fixture.root)
+        XCTAssertEqual(result.phase, .done)
+
+        // Three filesystem entries point at the same inode but only
+        // one of them should contribute to the bytes/leaves totals.
+        XCTAssertEqual(result.totalFiles, 1)
+        XCTAssertGreaterThanOrEqual(result.root.physicalSize, 5_000)
+        // Logical size counts the dedup'd size too (physical + logical
+        // mirror each other on the first occurrence).
+        XCTAssertEqual(result.root.logicalSize, 5_000)
+
+        // Walk the tree and confirm at least two of the entries carry
+        // the .hardlinkDuplicate flag and zero allocations.
+        var stack: [FSNode] = [result.root]
+        var duplicateCount = 0
+        while let node = stack.popLast() {
+            stack.append(contentsOf: node.children)
+            if node.flags.contains(.hardlinkDuplicate) {
+                duplicateCount += 1
+                XCTAssertEqual(node.physicalSize, 0)
+                XCTAssertEqual(node.logicalSize, 0)
+            }
+        }
+        XCTAssertEqual(duplicateCount, 2)
+    }
+
     func testScanEmitsProgressEvents() async throws {
         for i in 0..<10 {
             try fixture.file("f-\(i).bin", bytes: 1_024 * (i + 1))

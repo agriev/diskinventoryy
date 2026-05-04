@@ -2,9 +2,9 @@
 
 A modern disk inventory tool for macOS, written in Swift and SwiftUI. Treemap-based visualization of disk usage, ground-up rewrite of [Disk Inventory X](https://gitlab.com/tderlien/disk-inventory-x).
 
-> Status: **v0.6.0** — adds a Slice & Dice (Shneiderman 1992) layout alongside the default Squarified treemap (Bruls/van Wijk, the algorithm modern KDirStat / QDirStat / Disk Inventory X also use). Picker in Settings → Treemap → Algorithm. Plus everything from v0.5.0 (UX fixes, settings wired, Refresh in toolbar, tooltips, GitHub Pages landing).
+> Status: **v1.0.0** — feature-complete: bulk `getattrlistbulk(2)` enumerator with hardlink dedupe, synthetic Free/Other-space siblings on volume scans, Save/Open .dscan via File menu (⌘S, ⇧⌘O), shared right-click context menu (treemap + outline), Refresh Selection (⇧⌘R), drill-in fade animation gated on Reduce Motion, two layout algorithms (Squarified / Slice & Dice), wired Settings, multi-window. 46 unit tests on CI.
 >
-> Landing page: <https://agriev.github.io/diskinventoryy/>. Outstanding: `getattrlistbulk(2)` fast path, signed/notarized release builds.
+> Landing page: <https://agriev.github.io/diskinventoryy/>. Builds are universal (arm64 + x86_64) but ad-hoc-signed; see [Releases & signing](#releases--signing) below for the secrets needed to ship notarized DMGs.
 
 ## Requirements
 
@@ -78,14 +78,19 @@ DiskInventoryY is a from-scratch Swift/SwiftUI rewrite of [Disk Inventory X](htt
 
 ## Releases & signing
 
-Tagged releases (`v*`) trigger `.github/workflows/release.yml`. Notarized builds require these GitHub secrets:
+Tagged releases (`v*`) trigger `.github/workflows/release.yml`. Without secrets the workflow falls back to an ad-hoc-signed `.app` packaged into a DMG; users have to right-click → Open the first time, or run `xattr -dr com.apple.quarantine /Applications/DiskInventoryY.app`.
 
-- `APPLE_ID` — Apple ID email used for notarization.
-- `TEAM_ID` — Developer Team ID.
-- `APPLE_APP_PASSWORD` — app-specific password.
-- `MACOS_CERTIFICATE` (base64 .p12) and `MACOS_CERTIFICATE_PWD` — Developer ID Application cert.
+To ship notarized DMGs add these repo secrets (Settings → Secrets and variables → Actions):
 
-Without these, the workflow ships an unsigned `.app` zipped into the release artifact (Gatekeeper override required at first launch).
+| Secret | What it is | How to get it |
+|---|---|---|
+| `APPLE_ID` | Apple ID email | the Apple ID enrolled in the Apple Developer Program |
+| `TEAM_ID` | 10-character team identifier | <https://developer.apple.com/account#MembershipDetailsCard> |
+| `APPLE_APP_PASSWORD` | app-specific password for `notarytool` | <https://account.apple.com> → Sign-In and Security → App-Specific Passwords |
+| `MACOS_CERTIFICATE` *(future)* | base64-encoded `.p12` of the Developer ID Application cert | export the cert from Keychain → `base64 -i cert.p12 \| pbcopy` |
+| `MACOS_CERTIFICATE_PWD` *(future)* | password for the `.p12` | whatever you set on export |
+
+After the first three are set, the next `git tag v0.6.1 && git push --tags` will: archive the app, run `notarytool submit --wait`, staple the ticket, and attach the notarized DMG to the GitHub Release. The fourth and fifth secrets aren't read by the current workflow yet — they're slotted in for when we wire actual codesigning into `Scripts/BuildRelease.sh` (currently relying on whatever signing identity is available locally).
 
 ## License
 

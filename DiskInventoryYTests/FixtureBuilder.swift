@@ -47,4 +47,21 @@ final class FixtureBuilder {
     func restorePermissions(_ url: URL) throws {
         try fm.setAttributes([.posixPermissions: 0o755], ofItemAtPath: url.path)
     }
+
+    /// Create a hardlink at `linkPath` pointing at `sourcePath` (both
+    /// relative to fixture root).
+    @discardableResult
+    func hardlink(from sourcePath: String, to linkPath: String) throws -> URL {
+        let source = root.appendingPathComponent(sourcePath)
+        let target = root.appendingPathComponent(linkPath)
+        try fm.createDirectory(
+            at: target.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        let r = link(source.path, target.path)
+        if r != 0 {
+            throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
+        }
+        return target
+    }
 }
