@@ -12,12 +12,26 @@ struct TreemapCell: Sendable, Hashable {
     var size: Int64
 }
 
-/// Squarified treemap layout (Bruls/Huijsen/van Wijk, 2000).
+/// Treemap layout algorithms. Two are supported:
+///
+/// - `squarified` — Bruls/Huijsen/van Wijk 2000. Same family used by
+///   modern KDirStat / QDirStat / Disk Inventory X (via the OmniGroup
+///   framework). Cells are packed into rows that minimize the worst
+///   aspect ratio.
+/// - `sliceAndDice` — the classical "slice and dice" treemap from
+///   Shneiderman 1992, the look the early KDirStat 1.x and many
+///   academic visualizations used. Children fill alternating
+///   horizontal / vertical strips ordered by size.
 ///
 /// `layout(root:)` returns a flat list of cells suitable for a single
 /// CG draw pass. The algorithm is pure and exposed for unit testing
 /// independently of any view.
 enum TreemapLayout {
+
+    enum Algorithm: String, Sendable, CaseIterable {
+        case squarified
+        case sliceAndDice
+    }
 
     enum SizeMetric: Sendable {
         case physical
@@ -32,6 +46,7 @@ enum TreemapLayout {
     }
 
     struct Options: Sendable {
+        var algorithm: Algorithm = .squarified
         /// Pixels of inset per depth — creates the visible border that
         /// separates parent and child levels. Set to 0 to disable.
         var depthInset: CGFloat = 1
@@ -96,14 +111,99 @@ enum TreemapLayout {
         let total = positiveChildren.reduce(Int64(0)) { $0 &+ sizeOf($1) }
         guard total > 0 else { return }
 
-        squarify(
-            children: positiveChildren,
-            totalSize: total,
-            container: inner,
-            depth: depth &+ 1,
-            options: options,
-            into: &cells
-        )
+        switch options.algorithm {
+        case .squarified:
+            squarify(
+                children: positiveChildren,
+                totalSize: total,
+                container: inner,
+                depth: depth &+ 1,
+                options: options,
+                into: &cells
+            )
+        case .sliceAndDice:
+            sliceAndDice(
+                children: positiveChildren,
+                totalSize: total,
+                container: inner,
+                depth: depth &+ 1,
+                horizontal: inner.width >= inner.height,
+                options: options,
+                into: &cells
+            )
+        }
+    }
+
+    // MARK: - Slice and Dice (Shneiderman 1992)
+
+    /// Lay children out along the longer side of the container, each
+    /// allocated a strip whose width is proportional to its size.
+    /// Recurses into each child with the axis flipped.
+    private static func sliceAndDice(
+        children: [FSNode],
+        totalSize: Int64,
+        container: CGRect,
+        depth: UInt8,
+        horizontal: Bool,
+        options: Options,
+        into cells: inout [TreemapCell]
+    ) {
+        let sizeOf = options.sizeMetric.value
+        var offset: CGFloat = 0
+        for child in children {
+            let childSize = sizeOf(child)
+            let frac = CGFloat(Double(childSize) / Double(totalSize))
+            let span: CGFloat
+            let childRect: CGRect
+            if horizontal {
+                span = container.width * frac
+                childRect = CGRect(
+                    x: container.minX + offset,
+                    y: container.minY,
+                    width: span,
+                    height: container.height
+                )
+            } else {
+                span = container.height * frac
+                childRect = CGRect(
+                    x: container.minX,
+                    y: container.minY + offset,
+                    width: container.width,
+                    height: span
+                )
+            }
+            offset += span
+
+            // Don't emit / recurse into degenerate strips.
+            guard childRect.width >= options.minLeafEdge, childRect.height >= options.minLeafEdge else { continue }
+
+            cells.append(TreemapCell(
+                nodeID: ObjectIdentifier(child),
+                rect: childRect,
+                depth: depth,
+                size: childSize
+            ))
+
+            if !child.children.isEmpty, depth < options.maxDepth {
+                let inset = options.depthInset
+                let inner = childRect.insetBy(dx: inset, dy: inset)
+                guard inner.width > 0, inner.height > 0 else { continue }
+                let kids = child.children
+                    .filter { sizeOf($0) > 0 }
+                    .sorted { sizeOf($0) > sizeOf($1) }
+                let inheritedTotal = kids.reduce(Int64(0)) { $0 &+ sizeOf($1) }
+                guard !kids.isEmpty, inheritedTotal > 0 else { continue }
+                sliceAndDice(
+                    children: kids,
+                    totalSize: inheritedTotal,
+                    container: inner,
+                    depth: depth &+ 1,
+                    horizontal: !horizontal,
+                    options: options,
+                    into: &cells
+                )
+            }
+        }
     }
 
     // MARK: - Squarified packing

@@ -32,6 +32,11 @@ final class TreemapNSView: NSView, NSDraggingSource {
         didSet { rebuildLayout() }
     }
 
+    /// Squarified vs slice-and-dice.
+    var algorithm: TreemapLayout.Algorithm = .squarified {
+        didSet { rebuildLayout() }
+    }
+
     /// Identity of the FSNode that should be highlighted, if any.
     var selectedNodeID: ObjectIdentifier? {
         didSet { needsDisplay = true }
@@ -103,6 +108,7 @@ final class TreemapNSView: NSView, NSDraggingSource {
         }
         var options = TreemapLayout.Options.default
         options.sizeMetric = sizeMetric
+        options.algorithm = algorithm
         cells = TreemapLayout.layout(root: root, bounds: bounds, options: options)
         rebuildNodeIndex(root: root)
         needsDisplay = true

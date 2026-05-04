@@ -9,6 +9,7 @@ struct TreemapHost: NSViewRepresentable {
     var cushionIntensity: Double = 0.7
     var depthContrast: Double = 0.15
     var sizeMetric: TreemapLayout.SizeMetric = .physical
+    var algorithm: TreemapLayout.Algorithm = .squarified
     var onDrillIn: ((FSNode) -> Void)? = nil
 
     func makeNSView(context: Context) -> TreemapNSView {
@@ -17,6 +18,7 @@ struct TreemapHost: NSViewRepresentable {
         view.cushionIntensity = CGFloat(cushionIntensity)
         view.depthContrast = CGFloat(depthContrast)
         view.sizeMetric = sizeMetric
+        view.algorithm = algorithm
         view.onSelect = { node in
             DispatchQueue.main.async {
                 self.selectedNode = node
@@ -36,6 +38,9 @@ struct TreemapHost: NSViewRepresentable {
         }
         if nsView.sizeMetric != sizeMetric {
             nsView.sizeMetric = sizeMetric
+        }
+        if nsView.algorithm != algorithm {
+            nsView.algorithm = algorithm
         }
         nsView.cushionIntensity = CGFloat(cushionIntensity)
         nsView.depthContrast = CGFloat(depthContrast)

@@ -39,9 +39,15 @@ final class AppSettings {
     var sizeModeRaw: String {
         didSet { defaults.set(sizeModeRaw, forKey: "sizeMode") }
     }
+    var treemapAlgorithmRaw: String {
+        didSet { defaults.set(treemapAlgorithmRaw, forKey: "treemapAlgorithm") }
+    }
 
     var sizeUnit: SizeUnit { SizeUnit(rawValue: sizeUnitRaw) ?? .binary }
     var sizeMode: SizeMode { SizeMode(rawValue: sizeModeRaw) ?? .physical }
+    var treemapAlgorithm: TreemapLayout.Algorithm {
+        TreemapLayout.Algorithm(rawValue: treemapAlgorithmRaw) ?? .squarified
+    }
 
     init() {
         // Sensible defaults; first-launch values match what the
@@ -53,6 +59,7 @@ final class AppSettings {
         self.depthContrast = defaults.object(forKey: "depthContrast") as? Double ?? 0.15
         self.animateZoom = defaults.object(forKey: "animateZoom") as? Bool ?? true
         self.sizeModeRaw = defaults.string(forKey: "sizeMode") ?? "physical"
+        self.treemapAlgorithmRaw = defaults.string(forKey: "treemapAlgorithm") ?? "squarified"
     }
 
     /// Build the `ScanOptions` that reflect current settings.

@@ -58,6 +58,12 @@ private struct TreemapSettingsView: View {
             }
             .pickerStyle(.segmented)
             .help("Logical: file size as reported. Physical: bytes actually allocated on disk (APFS-compressed/sparse files differ).")
+            Picker("Algorithm", selection: $settings.treemapAlgorithmRaw) {
+                Text("Squarified").tag("squarified")
+                Text("Slice & Dice (classic)").tag("sliceAndDice")
+            }
+            .pickerStyle(.segmented)
+            .help("Squarified (Bruls/van Wijk, used by modern KDirStat) packs cells as close to square as possible. Slice & Dice (Shneiderman 1992, KDirStat 1.x style) uses alternating horizontal/vertical strips — easier to read, more elongated cells.")
         }
         .formStyle(.grouped)
         .padding()

@@ -165,6 +165,7 @@ struct RootView: View {
                     cushionIntensity: settings.cushionIntensity,
                     depthContrast: settings.depthContrast,
                     sizeMetric: settings.sizeMode == .logical ? .logical : .physical,
+                    algorithm: settings.treemapAlgorithm,
                     onDrillIn: { node in
                         if node.isContainer {
                             drillStack.append(node)
@@ -338,6 +339,7 @@ struct ContentSplitView: View {
     let cushionIntensity: Double
     let depthContrast: Double
     let sizeMetric: TreemapLayout.SizeMetric
+    let algorithm: TreemapLayout.Algorithm
     var onDrillIn: (FSNode) -> Void
     var onDrillUp: (Int) -> Void
     let rootName: String
@@ -362,6 +364,7 @@ struct ContentSplitView: View {
                     cushionIntensity: cushionIntensity,
                     depthContrast: depthContrast,
                     sizeMetric: sizeMetric,
+                    algorithm: algorithm,
                     onDrillIn: onDrillIn
                 )
                 .frame(minHeight: 200, idealHeight: 360)

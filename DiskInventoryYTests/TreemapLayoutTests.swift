@@ -127,6 +127,69 @@ final class TreemapLayoutTests: XCTestCase {
         XCTAssertTrue(cells.contains(where: { $0.depth == 2 && $0.nodeID == ObjectIdentifier(inner) }))
     }
 
+    // MARK: - Slice & Dice
+
+    func testSliceAndDiceCoversContainer() {
+        let root = directory("root")
+        root.appendChild(file("a", bytes: 60))
+        root.appendChild(file("b", bytes: 30))
+        root.appendChild(file("c", bytes: 10))
+
+        let bounds = CGRect(x: 0, y: 0, width: 1_000, height: 1_000)
+        var options = TreemapLayout.Options(depthInset: 0, minLeafEdge: 0.5, maxDepth: 32)
+        options.algorithm = .sliceAndDice
+
+        let cells = TreemapLayout.layout(root: root, bounds: bounds, options: options)
+        let leafCells = cells.filter { $0.depth == 1 }
+        XCTAssertEqual(leafCells.count, 3)
+
+        // Strips align on the longer axis: container is square, so
+        // direction is horizontal (width >= height in our impl).
+        let totalArea = leafCells.reduce(0.0) { $0 + Double($1.rect.width * $1.rect.height) }
+        XCTAssertEqual(totalArea, Double(bounds.width * bounds.height), accuracy: 1.0)
+    }
+
+    func testSliceAndDiceProducesRectanglesOfFullContainerHeight() {
+        let root = directory("root")
+        root.appendChild(file("a", bytes: 40))
+        root.appendChild(file("b", bytes: 60))
+
+        let bounds = CGRect(x: 0, y: 0, width: 1_000, height: 200)
+        var options = TreemapLayout.Options(depthInset: 0, minLeafEdge: 0.5, maxDepth: 32)
+        options.algorithm = .sliceAndDice
+
+        let cells = TreemapLayout.layout(root: root, bounds: bounds, options: options)
+        let leafCells = cells.filter { $0.depth == 1 }
+        // For a wide container, slice-and-dice with horizontal axis
+        // gives strips that span full height.
+        for cell in leafCells {
+            XCTAssertEqual(cell.rect.height, bounds.height, accuracy: 0.5)
+        }
+    }
+
+    func testSliceAndDiceFlipsAxisOnRecursion() {
+        let root = directory("root")
+        let dir = directory("dir")
+        dir.appendChild(file("inner-a", bytes: 50))
+        dir.appendChild(file("inner-b", bytes: 50))
+        root.appendChild(dir)
+
+        let bounds = CGRect(x: 0, y: 0, width: 200, height: 100)
+        var options = TreemapLayout.Options(depthInset: 0, minLeafEdge: 0.5, maxDepth: 32)
+        options.algorithm = .sliceAndDice
+
+        let cells = TreemapLayout.layout(root: root, bounds: bounds, options: options)
+        let inner = cells.filter { $0.depth == 2 }
+        XCTAssertEqual(inner.count, 2)
+        // Top level was horizontal; inner level should be vertical
+        // (axis flipped). Check that two children share the SAME x and
+        // differ in y (not the other way around).
+        if let first = inner.first, let second = inner.dropFirst().first {
+            XCTAssertEqual(first.rect.minX, second.rect.minX, accuracy: 0.5)
+            XCTAssertNotEqual(first.rect.minY, second.rect.minY, accuracy: 0.5)
+        }
+    }
+
     func testLayoutIsDeterministicForFixedInput() {
         let root1 = directory("root")
         for i in 1...10 {
