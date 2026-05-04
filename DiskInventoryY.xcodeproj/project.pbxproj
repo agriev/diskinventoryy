@@ -40,6 +40,7 @@
 		AD0C86F150482A12DDAE80D1 /* SavedScanCodecTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1B96B11B45FDD75861F904 /* SavedScanCodecTests.swift */; };
 		AE7FEF0F2572749C499295EB /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6806DAB26347009ACD5C4286 /* RootView.swift */; };
 		AF7E096DECABB4452017CD84 /* RecentsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9295A1DDCC721862A254D127 /* RecentsStore.swift */; };
+		B9D6280630632AB50298BB4C /* SavedScanDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FB85D5BB7E2C0EDEB94BBE5 /* SavedScanDocument.swift */; };
 		C8286B1711DED4FE560C9E21 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A7AD5169BA2C0111DE9B33 /* SettingsView.swift */; };
 		CE4AE38D77A5A5AEE7C00237 /* KindDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0277EF355739BD2F40F145 /* KindDetectorTests.swift */; };
 		D3DAB6C3A621DB21F8EC67FD /* SavedScanCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 512EF98FFF647F9F1C8C377B /* SavedScanCodec.swift */; };
@@ -106,6 +107,7 @@
 		8288C97C1E138930BA3F59A4 /* IconCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconCache.swift; sourceTree = "<group>"; };
 		8339C62F7A16B3A6A83C463A /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
 		8BA837092BB76F49D3F2B760 /* KindsAggregator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KindsAggregator.swift; sourceTree = "<group>"; };
+		8FB85D5BB7E2C0EDEB94BBE5 /* SavedScanDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedScanDocument.swift; sourceTree = "<group>"; };
 		90288804FDC9FA14CE9B5369 /* VolumeInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeInfo.swift; sourceTree = "<group>"; };
 		9295A1DDCC721862A254D127 /* RecentsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentsStore.swift; sourceTree = "<group>"; };
 		93DA6EA20CCC7C6DE8C02A9A /* PermissionsBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsBanner.swift; sourceTree = "<group>"; };
@@ -316,6 +318,7 @@
 				A9D000355FCEE6EC7852BF55 /* FSNode.swift */,
 				D840465DB6E78C9A13C8220A /* FSNodeKind.swift */,
 				B39BA78724BF42F26F563129 /* SavedScan.swift */,
+				8FB85D5BB7E2C0EDEB94BBE5 /* SavedScanDocument.swift */,
 				3D1848C7C55365A12E7F307D /* ScanError.swift */,
 				D86E1B688154CD4CE31057E7 /* ScanID.swift */,
 				0B19C6EAC8F79F90638989A6 /* ScanProgress.swift */,
@@ -511,6 +514,7 @@
 				AE7FEF0F2572749C499295EB /* RootView.swift in Sources */,
 				1CBCDBFB6DB1E66768D5E78C /* SavedScan.swift in Sources */,
 				D3DAB6C3A621DB21F8EC67FD /* SavedScanCodec.swift in Sources */,
+				B9D6280630632AB50298BB4C /* SavedScanDocument.swift in Sources */,
 				10DA15E67010A0C82D975F5D /* ScanController.swift in Sources */,
 				1A652BF87AA2089FED0C09D2 /* ScanError.swift in Sources */,
 				9A212EE6F946E322325DB462 /* ScanID.swift in Sources */,

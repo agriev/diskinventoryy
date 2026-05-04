@@ -24,8 +24,14 @@ extension FileKind {
     static let system      = FileKind(id: "system",      displayName: "System",       priority: 90)
     static let other       = FileKind(id: "other",       displayName: "Other",        priority: 1_000)
 
+    /// Synthetic kinds for the root-level "free space" / "other space"
+    /// siblings. They aren't counted in `KindsAggregator` totals.
+    static let freeSpace  = FileKind(id: "free-space",  displayName: "Free space",  priority: 1_001)
+    static let otherSpace = FileKind(id: "other-space", displayName: "Other space", priority: 1_002)
+
     static let allKnown: [FileKind] = [
         .image, .video, .audio, .document, .archive,
         .code, .application, .package, .system, .other,
+        .freeSpace, .otherSpace,
     ]
 }

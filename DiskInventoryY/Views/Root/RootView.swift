@@ -13,6 +13,11 @@ struct RootView: View {
     @State private var registry = ScanRegistry.shared
     @State private var settings = AppSettings.shared
     @State private var showFolderImporter = false
+    @State private var showSavedScanImporter = false
+    @State private var showSavedScanExporter = false
+    @State private var savedScanDocument: SavedScanDocument?
+    @State private var savedScanFilename = "scan.dscan"
+    @State private var saveErrorMessage: String?
     @State private var inspectorVisible = false
     @State private var kindsBarVisible = true
     @State private var selectedNode: FSNode?
@@ -77,6 +82,12 @@ struct RootView: View {
         .onReceive(NotificationCenter.default.publisher(for: .openFolderRequested)) { _ in
             showFolderImporter = true
         }
+        .onReceive(NotificationCenter.default.publisher(for: .saveScanRequested)) { _ in
+            triggerSaveScan()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openSavedScanRequested)) { _ in
+            showSavedScanImporter = true
+        }
         .fileImporter(
             isPresented: $showFolderImporter,
             allowedContentTypes: [.folder],
@@ -85,6 +96,38 @@ struct RootView: View {
             if case let .success(urls) = result, let url = urls.first {
                 openScan(url: url)
             }
+        }
+        .fileImporter(
+            isPresented: $showSavedScanImporter,
+            allowedContentTypes: [.diskInventoryScan, .json],
+            allowsMultipleSelection: false
+        ) { result in
+            if case let .success(urls) = result, let url = urls.first {
+                loadSavedScan(from: url)
+            }
+        }
+        .fileExporter(
+            isPresented: $showSavedScanExporter,
+            document: savedScanDocument,
+            contentType: .diskInventoryScan,
+            defaultFilename: savedScanFilename
+        ) { result in
+            if case let .failure(error) = result {
+                saveErrorMessage = "Couldn't save scan: \(error.localizedDescription)"
+            }
+            savedScanDocument = nil
+        }
+        .alert(
+            "Save scan failed",
+            isPresented: Binding(
+                get: { saveErrorMessage != nil },
+                set: { if !$0 { saveErrorMessage = nil } }
+            ),
+            presenting: saveErrorMessage
+        ) { _ in
+            Button("OK", role: .cancel) {}
+        } message: { msg in
+            Text(msg)
         }
         .onDrop(of: [.fileURL], isTargeted: nil) { providers in
             for provider in providers {
@@ -124,6 +167,78 @@ struct RootView: View {
             // This window already shows a scan; open a new window.
             openWindow(value: ScanID?.some(id))
         }
+    }
+
+    /// Encode the current scan and trigger the .dscan exporter.
+    private func triggerSaveScan() {
+        guard let result = controller?.result else {
+            saveErrorMessage = "Nothing to save — start a scan first."
+            return
+        }
+        let saved = SavedScan(
+            scannedAt: result.finishedAt,
+            rootURL: result.rootURL,
+            volume: result.volume,
+            tree: SavedScanCodec.snapshot(result.root)
+        )
+        do {
+            let bytes = try SavedScanCodec.encode(saved)
+            savedScanDocument = SavedScanDocument(data: bytes)
+            let base = result.rootURL.lastPathComponent.isEmpty
+                ? "scan"
+                : result.rootURL.lastPathComponent
+            savedScanFilename = "\(base).dscan"
+            showSavedScanExporter = true
+        } catch {
+            saveErrorMessage = "Couldn't encode scan: \(error.localizedDescription)"
+        }
+    }
+
+    /// Read a `.dscan` file and adopt it as the current window's scan,
+    /// or open a new window if this one already has a scan.
+    private func loadSavedScan(from url: URL) {
+        do {
+            let data = try Data(contentsOf: url)
+            let saved = try SavedScanCodec.decode(data)
+            let root = SavedScanCodec.materialize(saved.tree)
+            let totalFiles = countLeaves(in: root)
+            let totalDirs = countDirectories(in: root)
+            let result = ScanResult(
+                id: ScanID(),
+                rootURL: saved.rootURL,
+                root: root,
+                volume: saved.volume,
+                startedAt: saved.scannedAt,
+                finishedAt: saved.scannedAt,
+                phase: .done,
+                totalFiles: Int64(totalFiles),
+                totalDirectories: Int64(totalDirs),
+                totalBytes: root.physicalSize
+            )
+            if scanID == nil {
+                let id = registry.adopt(result: result)
+                selectedNode = nil
+                drillStack = []
+                lastRecordedRoot = nil
+                scanID = id
+            } else {
+                let id = registry.adopt(result: result)
+                openWindow(value: ScanID?.some(id))
+            }
+        } catch {
+            saveErrorMessage = "Couldn't open .dscan: \(error.localizedDescription)"
+        }
+    }
+
+    private func countLeaves(in node: FSNode) -> Int {
+        if node.children.isEmpty { return node.fileType == .directory ? 0 : 1 }
+        return node.children.reduce(0) { $0 + countLeaves(in: $1) }
+    }
+
+    private func countDirectories(in node: FSNode) -> Int {
+        var count = node.isContainer ? 1 : 0
+        for child in node.children { count += countDirectories(in: child) }
+        return count
     }
 
     /// Re-scan the currently shown root in the same window.

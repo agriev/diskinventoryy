@@ -32,6 +32,18 @@ final class ScanRegistry {
         return id
     }
 
+    /// Register a freshly-loaded scan (e.g. from a `.dscan` file) as a
+    /// new entry. Returns the new id so the caller can open a window
+    /// pointing at it.
+    @discardableResult
+    func adopt(result: ScanResult) -> ScanID {
+        let id = ScanID()
+        let controller = ScanController()
+        controller.adopt(result: result)
+        controllers[id] = controller
+        return id
+    }
+
     /// Cancel the scan and drop the controller. Called when its window
     /// closes.
     func discard(_ id: ScanID) {

@@ -48,6 +48,23 @@ final class ScanController {
         Task { [scanner] in await scanner.cancel() }
     }
 
+    /// Replace the current state with a pre-existing `ScanResult` —
+    /// used when opening a saved `.dscan` file. No work is dispatched
+    /// to the scanner.
+    func adopt(result: ScanResult) {
+        cancel()
+        rootURL = result.rootURL
+        self.result = result
+        progress = ScanProgress(
+            phase: .done,
+            filesScanned: result.totalFiles,
+            directoriesScanned: result.totalDirectories,
+            bytesScanned: result.totalBytes,
+            currentURL: nil
+        )
+        phase = .done
+    }
+
     /// Re-scan a single subtree. Replaces `node`'s children with a
     /// freshly-walked tree; sizes propagate upward through the
     /// existing `replaceChildren` delta logic. Selection that was

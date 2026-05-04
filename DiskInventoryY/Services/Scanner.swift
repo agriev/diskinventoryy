@@ -241,6 +241,82 @@ actor DiskScanner {
         )
     }
 
+    /// If `url` is the root of a mounted volume, returns its
+    /// `VolumeInfo`. Used to attach synthetic Free/Other space
+    /// siblings only on volume scans, not folder scans.
+    private nonisolated func volumeInfoIfRoot(_ url: URL) -> VolumeInfo? {
+        let keys: Set<URLResourceKey> = [
+            .volumeURLKey, .volumeNameKey, .volumeLocalizedNameKey,
+            .volumeTotalCapacityKey, .volumeAvailableCapacityKey,
+            .volumeAvailableCapacityForImportantUsageKey,
+            .volumeIsRemovableKey, .volumeIsLocalKey, .volumeIsReadOnlyKey,
+        ]
+        guard let values = try? url.resourceValues(forKeys: keys) else { return nil }
+        guard let volumeURL = values.volume,
+              volumeURL.standardizedFileURL == url.standardizedFileURL else {
+            return nil
+        }
+        let name = values.volumeLocalizedName ?? values.volumeName ?? url.lastPathComponent
+        return VolumeInfo(
+            name: name,
+            url: url,
+            fileSystemType: nil,
+            totalCapacity: Int64(values.volumeTotalCapacity ?? 0),
+            availableCapacity: Int64(values.volumeAvailableCapacity ?? 0),
+            availableForImportant: Int64(values.volumeAvailableCapacityForImportantUsage ?? 0),
+            isRemovable: values.volumeIsRemovable ?? false,
+            isLocal: values.volumeIsLocal ?? true,
+            isReadOnly: values.volumeIsReadOnly ?? false
+        )
+    }
+
+    /// Append synthetic Free Space / Other Space siblings under `root`
+    /// so the treemap reflects how much of the volume isn't covered by
+    /// what we walked: TCC-protected paths, snapshots, purgeable, etc.
+    private func attachVolumeSpaceSiblings(to root: FSNode, volume: VolumeInfo) {
+        guard volume.totalCapacity > 0 else { return }
+        let scanned = root.physicalSize
+        let free = max(0, volume.availableForImportant)
+        let other = max(0, volume.totalCapacity - scanned - free)
+
+        if free > 0 {
+            let freeNode = FSNode(
+                url: URL(string: "diy-virtual://\(volume.url.path)/free")!,
+                displayName: "Free space",
+                kind: .freeSpace,
+                fileType: .synthetic,
+                logicalSize: free,
+                physicalSize: free,
+                itemCount: 0,
+                kindID: FileKind.freeSpace.id,
+                isPackage: false,
+                isMountPoint: false,
+                depth: 0,
+                mtime: nil,
+                flags: []
+            )
+            root.appendChild(freeNode)
+        }
+        if other > 0 {
+            let otherNode = FSNode(
+                url: URL(string: "diy-virtual://\(volume.url.path)/other")!,
+                displayName: "Other space",
+                kind: .otherSpace,
+                fileType: .synthetic,
+                logicalSize: other,
+                physicalSize: other,
+                itemCount: 0,
+                kindID: FileKind.otherSpace.id,
+                isPackage: false,
+                isMountPoint: false,
+                depth: 0,
+                mtime: nil,
+                flags: []
+            )
+            root.appendChild(otherNode)
+        }
+    }
+
     /// Sum file sizes inside a package without exposing the children
     /// in the tree. Uses `FileManager.enumerator`; acceptable for the
     /// single-package case (.app, .xcodeproj, etc.).
@@ -290,11 +366,15 @@ actor DiskScanner {
         phase: ScanProgress.Phase
     ) async {
         let finishedAt = Date()
+        let volumeInfo = volumeInfoIfRoot(root.url)
+        if phase == .done, let volume = volumeInfo {
+            attachVolumeSpaceSiblings(to: root, volume: volume)
+        }
         let result = ScanResult(
             id: ScanID(),
             rootURL: root.url,
             root: root,
-            volume: nil,
+            volume: volumeInfo,
             startedAt: startedAt,
             finishedAt: finishedAt,
             phase: phase,

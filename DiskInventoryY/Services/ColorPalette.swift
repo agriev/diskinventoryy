@@ -18,6 +18,8 @@ struct ColorPalette: Sendable {
         FileKind.package.id:     .systemTeal,
         FileKind.system.id:      .systemGray,
         FileKind.other.id:       .systemYellow,
+        FileKind.freeSpace.id:   NSColor(white: 0.78, alpha: 1.0),
+        FileKind.otherSpace.id:  NSColor(white: 0.55, alpha: 1.0),
     ]
 
     /// Color for the given kind id. Resolves dynamic light/dark via the
