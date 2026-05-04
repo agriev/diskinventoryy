@@ -162,11 +162,23 @@ struct OutlineHost: NSViewRepresentable {
 
         // Sync selection from binding back into the outline.
         if let node = selectedNode {
+            // Expand all ancestors so the row exists in the visible
+            // tree. NSOutlineView.row(forItem:) only finds rows that
+            // are currently exposed.
+            for ancestor in node.ancestry where ancestor !== node {
+                if !outline.isItemExpanded(ancestor) {
+                    outline.expandItem(ancestor)
+                }
+            }
             let row = outline.row(forItem: node)
-            if row >= 0, outline.selectedRow != row {
-                outline.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
+            if row >= 0 {
+                if outline.selectedRow != row {
+                    outline.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
+                }
                 outline.scrollRowToVisible(row)
             }
+        } else if outline.selectedRow >= 0 {
+            outline.deselectAll(nil)
         }
     }
 

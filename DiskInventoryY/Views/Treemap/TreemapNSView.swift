@@ -171,12 +171,21 @@ final class TreemapNSView: NSView, NSDraggingSource {
             context.stroke(cell.rect.insetBy(dx: 0.5, dy: 0.5))
         }
 
-        // Selection ring.
+        // Selection ring. Drawn entirely *inside* the cell rect (insets
+        // 3pt) so it doesn't clip at the edge of the treemap view.
+        // Two-layer: dark halo behind, accent on top, so the ring
+        // stays visible regardless of cell colour or cushion shading.
         if let selectedNodeID,
            let cell = cells.first(where: { $0.nodeID == selectedNodeID && $0.depth > 0 }) {
+            let inset: CGFloat = min(3, min(cell.rect.width, cell.rect.height) / 4)
+            guard inset > 0 else { return }
+            let rect = cell.rect.insetBy(dx: inset, dy: inset)
+            context.setStrokeColor(NSColor.black.withAlphaComponent(0.7).cgColor)
+            context.setLineWidth(3.5)
+            context.stroke(rect)
             context.setStrokeColor(NSColor.controlAccentColor.cgColor)
             context.setLineWidth(2)
-            context.stroke(cell.rect.insetBy(dx: 1, dy: 1))
+            context.stroke(rect)
         }
     }
 

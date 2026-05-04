@@ -1,7 +1,73 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%@ free of %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ free of %2$@"
+          }
+        }
+      }
+    },
+    "Binary (1024)" : {
 
+    },
+    "Choose a folder or volume to begin scanning. You can also drop a folder onto this window." : {
+
+    },
+    "Cushion intensity: %@" : {
+
+    },
+    "Decimal (1000)" : {
+
+    },
+    "Depth contrast: %@" : {
+
+    },
+    "DiskInventoryY runs entirely on-device. No data leaves your machine." : {
+
+    },
+    "Full Disk Access not granted" : {
+
+    },
+    "Logical" : {
+
+    },
+    "No scan yet" : {
+
+    },
+    "Physical on disk" : {
+
+    },
+    "Recent Scans" : {
+
+    },
+    "Scan cancelled" : {
+
+    },
+    "Scan failed" : {
+
+    },
+    "Scanning…" : {
+
+    },
+    "Select an item to inspect" : {
+
+    },
+    "Slice & Dice (classic)" : {
+
+    },
+    "Squarified" : {
+
+    },
+    "This will move the item to the system Trash. The treemap won't update until the next refresh." : {
+
+    },
+    "Without it, scans of protected paths (Mail, Messages, system Library, …) will be incomplete." : {
+
+    }
   },
   "version" : "1.0"
 }

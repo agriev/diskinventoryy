@@ -2,8 +2,12 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct RootView: View {
-    let scanID: ScanID?
+    /// The id seeded by SwiftUI's `WindowGroup(for:)`. When `nil` this
+    /// is a landing window; new scans launched here replace this value
+    /// instead of spawning a fresh window.
+    let initialScanID: ScanID?
 
+    @State private var scanID: ScanID?
     @State private var volumeService = VolumeService()
     @State private var recents = RecentsStore.shared
     @State private var registry = ScanRegistry.shared
@@ -18,6 +22,11 @@ struct RootView: View {
     @State private var lastRecordedRoot: URL?
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openWindow) private var openWindow
+
+    init(scanID: ScanID?) {
+        self.initialScanID = scanID
+        _scanID = State(initialValue: scanID)
+    }
 
     private var controller: ScanController? {
         guard let scanID else { return nil }
@@ -104,7 +113,17 @@ struct RootView: View {
     /// window) or open a new window for the new scan.
     private func openScan(url: URL) {
         let id = registry.startNewScan(url: url, options: settings.scanOptions)
-        openWindow(value: ScanID?.some(id))
+        if scanID == nil {
+            // Empty landing window — adopt the new scan in place.
+            selectedNode = nil
+            highlightedKind = nil
+            drillStack = []
+            lastRecordedRoot = nil
+            scanID = id
+        } else {
+            // This window already shows a scan; open a new window.
+            openWindow(value: ScanID?.some(id))
+        }
     }
 
     /// Re-scan the currently shown root in the same window.
