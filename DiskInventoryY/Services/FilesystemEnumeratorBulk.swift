@@ -42,6 +42,7 @@ struct FilesystemEnumeratorBulk: FilesystemEnumerating {
         attrList.commonattr =
             attrgroup_t(ATTR_CMN_RETURNED_ATTRS) |
             attrgroup_t(ATTR_CMN_NAME) |
+            attrgroup_t(ATTR_CMN_DEVID) |
             attrgroup_t(ATTR_CMN_OBJTYPE) |
             attrgroup_t(ATTR_CMN_FILEID) |
             attrgroup_t(ATTR_CMN_MODTIME)
@@ -115,6 +116,7 @@ struct FilesystemEnumeratorBulk: FilesystemEnumerating {
 
         var name: String?
         var fileType: FileType = .regularFile
+        var device: UInt64 = 0
         var inode: UInt64 = 0
         var mtime: Date?
         var dataLength: Int64 = 0
@@ -141,6 +143,15 @@ struct FilesystemEnumeratorBulk: FilesystemEnumerating {
                 name = String(decoding: bufferPointer, as: UTF8.self)
             }
             cursor += 8
+        }
+
+        // ATTR_CMN_DEVID (bit 0x2) precedes OBJTYPE (0x8) in the
+        // packed buffer. dev_t is a 4-byte value.
+        if returnedCommon & UInt32(ATTR_CMN_DEVID) != 0 {
+            guard cursor + 4 <= raw.count else { return nil }
+            let dev = raw.loadUnaligned(fromByteOffset: cursor, as: Int32.self)
+            device = UInt64(UInt32(bitPattern: dev))
+            cursor += 4
         }
 
         if returnedCommon & UInt32(ATTR_CMN_OBJTYPE) != 0 {
@@ -205,7 +216,7 @@ struct FilesystemEnumeratorBulk: FilesystemEnumerating {
             physicalSize: allocSize > 0 ? allocSize : dataLength,
             mtime: mtime,
             inode: inode == 0 ? nil : inode,
-            device: nil,
+            device: device == 0 ? nil : device,
             hardlinkCount: 0,
             flags: flags
         )

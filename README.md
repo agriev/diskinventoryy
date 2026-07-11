@@ -2,7 +2,7 @@
 
 A modern disk inventory tool for macOS, written in Swift and SwiftUI. Treemap-based visualization of disk usage, ground-up rewrite of [Disk Inventory X](https://gitlab.com/tderlien/disk-inventory-x).
 
-> Status: **v1.0.0** — feature-complete: bulk `getattrlistbulk(2)` enumerator with hardlink dedupe, synthetic Free/Other-space siblings on volume scans, Save/Open .dscan via File menu (⌘S, ⇧⌘O), shared right-click context menu (treemap + outline), Refresh Selection (⇧⌘R), drill-in fade animation gated on Reduce Motion, two layout algorithms (Squarified / Slice & Dice), wired Settings, multi-window. 46 unit tests on CI.
+> Status: **v1.1.0** — the Disk Inventory X parity release. Parallel scanner (~6.6M files in ~9 min on an M1, live progress); DIX-style treemap: kind colors belong to *files only*, directories render as neutral grouping frames, stronger cushion shading, full-depth detail; predictable single-window navigation (drives/recents/drops load in place; new windows only via File → New Window, ⇧⌘N); Move to Trash updates the map instantly; cycle-safe traversal (APFS mountpoint loops). Plus everything from v1.0.0.
 >
 > Landing page: <https://agriev.github.io/diskinventoryy/>. Builds are universal (arm64 + x86_64) but ad-hoc-signed; see [Releases & signing](#releases--signing) below for the secrets needed to ship notarized DMGs.
 

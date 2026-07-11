@@ -98,6 +98,25 @@ final class FSNode: Identifiable, Hashable, @unchecked Sendable {
                      itemCount: child.itemCount)
     }
 
+    /// Append a batch of children with a single upward propagation —
+    /// one parent-chain walk per directory instead of one per file.
+    func appendChildren(_ newChildren: [FSNode]) {
+        guard !newChildren.isEmpty else { return }
+        var logical: Int64 = 0
+        var physical: Int64 = 0
+        var items: Int32 = 0
+        children.reserveCapacity(children.count + newChildren.count)
+        for child in newChildren {
+            child.parent = self
+            child.depth = depth &+ 1
+            children.append(child)
+            logical &+= child.logicalSize
+            physical &+= child.physicalSize
+            items &+= child.itemCount
+        }
+        propagateAdd(logical: logical, physical: physical, itemCount: items)
+    }
+
     /// Remove a child by identity. Sizes and counts bubble back up.
     @discardableResult
     func removeChild(_ child: FSNode) -> Bool {

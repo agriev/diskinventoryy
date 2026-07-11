@@ -18,6 +18,8 @@ struct DiskInventoryYApp: App {
                 }
                 .keyboardShortcut("n", modifiers: .command)
 
+                NewWindowCommand()
+
                 Divider()
 
                 Button("Open Scan…") {
@@ -35,6 +37,19 @@ struct DiskInventoryYApp: App {
         Settings {
             SettingsView()
         }
+    }
+}
+
+/// "New Window" needs `openWindow`, which is only available through the
+/// environment — hence a tiny custom `View` embedded in the menu.
+private struct NewWindowCommand: View {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button("New Window") {
+            openWindow(value: ScanID?.some(ScanRegistry.shared.newEmptyID()))
+        }
+        .keyboardShortcut("n", modifiers: [.command, .shift])
     }
 }
 

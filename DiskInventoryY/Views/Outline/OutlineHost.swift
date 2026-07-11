@@ -7,6 +7,12 @@ import SwiftUI
 struct OutlineHost: NSViewRepresentable {
     let root: FSNode
     @Binding var selectedNode: FSNode?
+    /// Incremented by the owner when the tree mutates in place
+    /// (trash, subtree refresh) — the only trigger, besides a root
+    /// change, that justifies a full reloadData().
+    var treeVersion: Int = 0
+    /// Called after the context menu trashed a node.
+    var onTrash: ((FSNode) -> Void)? = nil
     var sortDescriptors: [NSSortDescriptor] = [
         NSSortDescriptor(key: "size", ascending: false)
     ]
@@ -16,6 +22,8 @@ struct OutlineHost: NSViewRepresentable {
         weak var outlineView: NSOutlineView?
         var sortedChildrenCache: [ObjectIdentifier: [FSNode]] = [:]
         var currentSort: [NSSortDescriptor] = []
+        var lastRootID: ObjectIdentifier?
+        var lastTreeVersion = -1
 
         init(_ parent: OutlineHost) {
             self.parent = parent
@@ -133,6 +141,7 @@ struct OutlineHost: NSViewRepresentable {
         outline.dataSource = context.coordinator
         outline.delegate = context.coordinator
         outline.sortDescriptors = sortDescriptors
+        outline.onTrash = onTrash
         context.coordinator.outlineView = outline
 
         let scrollView = NSScrollView()
@@ -149,16 +158,36 @@ struct OutlineHost: NSViewRepresentable {
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         guard let outline = scrollView.documentView as? NSOutlineView else { return }
-        // If the root changed, rebind data source content.
         let coordinator = context.coordinator
         coordinator.parent = self
+        (outline as? ContextMenuOutlineView)?.onTrash = onTrash
+
+        // reloadData() collapses expansion state and costs a full
+        // rebuild for 100k rows — only pay it when the content
+        // actually changed: sort, root identity, or an in-place tree
+        // mutation. Selection-only updates skip it entirely.
+        var needsReload = false
         if coordinator.currentSort != sortDescriptors {
             coordinator.currentSort = sortDescriptors
             outline.sortDescriptors = sortDescriptors
             coordinator.sortedChildrenCache.removeAll()
+            needsReload = true
         }
-        outline.reloadData()
-        outline.expandItem(root)
+        let rootID = ObjectIdentifier(root)
+        if coordinator.lastRootID != rootID {
+            coordinator.lastRootID = rootID
+            coordinator.sortedChildrenCache.removeAll()
+            needsReload = true
+        }
+        if coordinator.lastTreeVersion != treeVersion {
+            coordinator.lastTreeVersion = treeVersion
+            coordinator.sortedChildrenCache.removeAll()
+            needsReload = true
+        }
+        if needsReload {
+            outline.reloadData()
+            outline.expandItem(root)
+        }
 
         // Sync selection from binding back into the outline.
         if let node = selectedNode {
@@ -258,6 +287,9 @@ final class OutlineCellView: NSTableCellView {
 /// can't do this through the delegate (no such hook) so we override
 /// `menu(for:)` directly.
 final class ContextMenuOutlineView: NSOutlineView {
+    /// Post-trash callback so the owner drops the node from the tree.
+    var onTrash: ((FSNode) -> Void)?
+
     override func menu(for event: NSEvent) -> NSMenu? {
         let point = convert(event.locationInWindow, from: nil)
         let row = self.row(at: point)
@@ -265,7 +297,7 @@ final class ContextMenuOutlineView: NSOutlineView {
         if !selectedRowIndexes.contains(row) {
             selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
         }
-        return ItemContextMenu.make(for: node)
+        return ItemContextMenu.make(for: node, onTrash: onTrash)
     }
 }
 

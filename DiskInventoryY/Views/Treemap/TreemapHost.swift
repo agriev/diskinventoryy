@@ -6,11 +6,13 @@ struct TreemapHost: NSViewRepresentable {
     let root: FSNode
     @Binding var selectedNode: FSNode?
     var highlightedKind: FileKind.ID?
+    var treeVersion: Int = 0
     var cushionIntensity: Double = 0.7
     var depthContrast: Double = 0.15
     var sizeMetric: TreemapLayout.SizeMetric = .physical
     var algorithm: TreemapLayout.Algorithm = .squarified
     var onDrillIn: ((FSNode) -> Void)? = nil
+    var onTrash: ((FSNode) -> Void)? = nil
 
     func makeNSView(context: Context) -> TreemapNSView {
         let view = TreemapNSView()
@@ -29,6 +31,11 @@ struct TreemapHost: NSViewRepresentable {
                 self.onDrillIn?(node)
             }
         }
+        view.onTrash = { node in
+            DispatchQueue.main.async {
+                self.onTrash?(node)
+            }
+        }
         return view
     }
 
@@ -42,6 +49,7 @@ struct TreemapHost: NSViewRepresentable {
         if nsView.algorithm != algorithm {
             nsView.algorithm = algorithm
         }
+        nsView.treeVersion = treeVersion
         nsView.cushionIntensity = CGFloat(cushionIntensity)
         nsView.depthContrast = CGFloat(depthContrast)
         nsView.selectedNodeID = selectedNode.map(ObjectIdentifier.init)
@@ -55,6 +63,11 @@ struct TreemapHost: NSViewRepresentable {
         nsView.onDrillIn = { node in
             DispatchQueue.main.async {
                 self.onDrillIn?(node)
+            }
+        }
+        nsView.onTrash = { node in
+            DispatchQueue.main.async {
+                self.onTrash?(node)
             }
         }
     }

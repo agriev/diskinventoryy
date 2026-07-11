@@ -28,10 +28,11 @@ enum ItemContextMenu {
         })
         menu.addItem(.separator())
         let trashItem = ClosureMenuItem("Move to Trash") {
-            if let onTrash {
-                onTrash(node)
-            } else {
-                _ = try? FileActions.moveToTrash(node.url)
+            // The menu always performs the filesystem move; `onTrash`
+            // is a post-success notification so the owner can drop the
+            // node from the in-memory tree.
+            if (try? FileActions.moveToTrash(node.url)) != nil {
+                onTrash?(node)
             }
         }
         menu.addItem(trashItem)

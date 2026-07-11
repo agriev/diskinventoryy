@@ -44,6 +44,15 @@ final class ScanRegistry {
         return id
     }
 
+    /// Register an idle controller for a brand-new empty window
+    /// (File → New Window). The window shows the empty state until the
+    /// user picks something to scan.
+    func newEmptyID() -> ScanID {
+        let id = ScanID()
+        controllers[id] = ScanController()
+        return id
+    }
+
     /// Cancel the scan and drop the controller. Called when its window
     /// closes.
     func discard(_ id: ScanID) {

@@ -60,6 +60,18 @@ enum TreemapLayout {
         var sizeMetric: SizeMetric = .physical
 
         static let `default` = Options()
+
+        /// Frames matter near the top of the hierarchy (folder
+        /// grouping), but at depth the padding starves deep files of
+        /// their area — DIX renders leaves edge-to-edge. Taper: full
+        /// inset for the first two levels, half at three, then none.
+        func inset(forDepth depth: UInt8) -> CGFloat {
+            switch depth {
+            case 0...1: return depthInset
+            case 2:     return depthInset / 2
+            default:    return 0
+            }
+        }
     }
 
     /// Public entry. The root node's full `bounds` is filled, then each
@@ -97,10 +109,25 @@ enum TreemapLayout {
             size: max(sizeOf(node), 0)
         ))
 
+        recurseChildren(of: node, in: rect, depth: depth, options: options, into: &cells)
+    }
+
+    /// Lay out `node`'s children inside `rect` WITHOUT re-emitting the
+    /// node's own cell (the caller already has). Split out so squarify
+    /// can recurse into already-placed rects without duplicating cells.
+    private static func recurseChildren(
+        of node: FSNode,
+        in rect: CGRect,
+        depth: UInt8,
+        options: Options,
+        into cells: inout [TreemapCell]
+    ) {
+        guard rect.width >= options.minLeafEdge, rect.height >= options.minLeafEdge else { return }
         guard depth < options.maxDepth, !node.children.isEmpty else { return }
 
-        let inset = options.depthInset
-        let inner = rect.insetBy(dx: inset, dy: inset)
+        let sizeOf = options.sizeMetric.value
+        let inset = options.inset(forDepth: depth)
+        let inner = inset > 0 ? rect.insetBy(dx: inset, dy: inset) : rect
         guard inner.width > 0, inner.height > 0 else { return }
 
         let positiveChildren = node.children
@@ -185,8 +212,8 @@ enum TreemapLayout {
             ))
 
             if !child.children.isEmpty, depth < options.maxDepth {
-                let inset = options.depthInset
-                let inner = childRect.insetBy(dx: inset, dy: inset)
+                let inset = options.inset(forDepth: depth)
+                let inner = inset > 0 ? childRect.insetBy(dx: inset, dy: inset) : childRect
                 guard inner.width > 0, inner.height > 0 else { continue }
                 let kids = child.children
                     .filter { sizeOf($0) > 0 }
@@ -226,12 +253,14 @@ enum TreemapLayout {
             guard shorterSide > 0 else { return }
 
             // Build up a row by greedily appending children while the
-            // worst aspect ratio improves (or stays equal).
+            // worst aspect ratio improves (or stays equal). Min/max/sum
+            // are tracked as scalars — O(1) per candidate.
             var row: [FSNode] = [children[index]]
             var rowSize = sizeOf(children[index])
-            var bestWorst = worst(row: [rowSize],
+            var rowMin = rowSize
+            var rowMax = rowSize
+            var bestWorst = worst(rowMin: rowMin, rowMax: rowMax,
                                   rowSize: rowSize,
-                                  totalSize: remainingSize,
                                   shorterSide: shorterSide)
 
             var lookahead = index + 1
@@ -239,14 +268,16 @@ enum TreemapLayout {
                 let candidate = children[lookahead]
                 let candidateSize = sizeOf(candidate)
                 let trialSize = rowSize &+ candidateSize
-                let trialSizes = row.map(sizeOf) + [candidateSize]
-                let trialWorst = worst(row: trialSizes,
+                let trialMin = min(rowMin, candidateSize)
+                let trialMax = max(rowMax, candidateSize)
+                let trialWorst = worst(rowMin: trialMin, rowMax: trialMax,
                                        rowSize: trialSize,
-                                       totalSize: remainingSize,
                                        shorterSide: shorterSide)
                 if trialWorst <= bestWorst {
                     row.append(candidate)
                     rowSize = trialSize
+                    rowMin = trialMin
+                    rowMax = trialMax
                     bestWorst = trialWorst
                     lookahead += 1
                 } else {
@@ -255,6 +286,7 @@ enum TreemapLayout {
             }
 
             let consumed = lookahead - index
+            let firstPlaced = cells.count
             placeRow(
                 row: row,
                 rowSize: rowSize,
@@ -266,13 +298,12 @@ enum TreemapLayout {
                 into: &cells
             )
 
-            // Recurse into each child placed in this row.
-            // We refer back via `row[i].physicalSize` to compute the rect
-            // — placeRow has already set it via the `rect` we appended.
-            for child in row where !child.children.isEmpty {
-                if let cell = cells.last(where: { $0.nodeID == ObjectIdentifier(child) }) {
-                    layoutNode(child, in: cell.rect, depth: depth, options: options, into: &cells)
-                }
+            // placeRow appended one cell per row element, in order.
+            // Snapshot their rects (the array grows during recursion),
+            // then recurse into children WITHOUT re-emitting the cell.
+            let placed = Array(cells[firstPlaced...])
+            for (child, cell) in zip(row, placed) where !child.children.isEmpty {
+                recurseChildren(of: child, in: cell.rect, depth: depth, options: options, into: &cells)
             }
 
             remainingSize &-= rowSize
@@ -351,23 +382,19 @@ enum TreemapLayout {
 
     /// Worst-case (highest) aspect ratio in the row if it were drawn
     /// against `shorterSide` of the remaining container.
+    /// Worst aspect ratio in the row, computed from the running
+    /// min/max/sum scalars — O(1) per candidate, no array allocation.
     private static func worst(
-        row sizes: [Int64],
+        rowMin: Int64,
+        rowMax: Int64,
         rowSize: Int64,
-        totalSize: Int64,
         shorterSide: CGFloat
     ) -> Double {
-        guard let smallest = sizes.min(), let largest = sizes.max(), totalSize > 0 else {
-            return .infinity
-        }
-        let scale = Double(rowSize) / Double(totalSize)
-        let area = Double(shorterSide) * Double(shorterSide) * scale
-        guard area > 0 else { return .infinity }
-        let big = Double(largest)
-        let small = Double(smallest)
+        guard rowMin > 0, rowSize > 0, shorterSide > 0 else { return .infinity }
+        let s2 = Double(shorterSide) * Double(shorterSide)
         let rowSum = Double(rowSize)
-        let r1 = (big * Double(shorterSide) * Double(shorterSide)) / (rowSum * rowSum)
-        let r2 = (rowSum * rowSum) / (small * Double(shorterSide) * Double(shorterSide))
+        let r1 = (Double(rowMax) * s2) / (rowSum * rowSum)
+        let r2 = (rowSum * rowSum) / (Double(rowMin) * s2)
         return max(r1, r2)
     }
 }

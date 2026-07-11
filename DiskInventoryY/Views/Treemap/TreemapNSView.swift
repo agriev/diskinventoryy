@@ -37,6 +37,12 @@ final class TreemapNSView: NSView, NSDraggingSource {
         didSet { rebuildLayout() }
     }
 
+    /// Bumped by the owner after in-place tree mutations (trash,
+    /// subtree refresh) — cells and the node index are both stale.
+    var treeVersion: Int = 0 {
+        didSet { if oldValue != treeVersion { rebuildLayout(force: true) } }
+    }
+
     /// Identity of the FSNode that should be highlighted, if any.
     var selectedNodeID: ObjectIdentifier? {
         didSet { needsDisplay = true }
@@ -54,6 +60,10 @@ final class TreemapNSView: NSView, NSDraggingSource {
     /// Notified when the user double-clicks a cell (drill-in request).
     var onDrillIn: ((FSNode) -> Void)?
 
+    /// Notified after the context menu moved a node to the Trash so
+    /// the owner can unlink it from the tree.
+    var onTrash: ((FSNode) -> Void)?
+
     // MARK: - State
 
     private var cells: [TreemapCell] = []
@@ -62,6 +72,10 @@ final class TreemapNSView: NSView, NSDraggingSource {
     private var dragStartPoint: CGPoint?
     private var trackingArea: NSTrackingArea?
     private var lastRenderedRoot: ObjectIdentifier?
+    /// Cushion gradients are identical for every cell in one pass —
+    /// build them once per (intensity, appearance) instead of twice
+    /// per cell per frame.
+    private var cachedGradients: (key: String, highlight: CGGradient, shadow: CGGradient)?
 
     // MARK: - Init
 
@@ -84,6 +98,18 @@ final class TreemapNSView: NSView, NSDraggingSource {
 
     override func setFrameSize(_ newSize: NSSize) {
         super.setFrameSize(newSize)
+        // During a live window resize the layer scales the last drawn
+        // contents — recomputing a 100k-cell layout on every tick just
+        // burns the main thread. Exact layout lands on settle.
+        if inLiveResize {
+            needsDisplay = true
+        } else {
+            rebuildLayout()
+        }
+    }
+
+    override func viewDidEndLiveResize() {
+        super.viewDidEndLiveResize()
         rebuildLayout()
     }
 
@@ -100,7 +126,10 @@ final class TreemapNSView: NSView, NSDraggingSource {
         trackingArea = area
     }
 
-    private func rebuildLayout() {
+    /// Recompute cell rects. The node index — a full-tree walk — is
+    /// only rebuilt when the root identity or the tree contents
+    /// changed, never on plain resizes.
+    func rebuildLayout(force: Bool = false) {
         guard let root, bounds.width > 0, bounds.height > 0 else {
             cells = []
             nodeIndex = [:]
@@ -112,13 +141,16 @@ final class TreemapNSView: NSView, NSDraggingSource {
         options.sizeMetric = sizeMetric
         options.algorithm = algorithm
         cells = TreemapLayout.layout(root: root, bounds: bounds, options: options)
-        rebuildNodeIndex(root: root)
+
+        let newRootID = ObjectIdentifier(root)
+        if force || newRootID != lastRenderedRoot {
+            rebuildNodeIndex(root: root)
+        }
         needsDisplay = true
 
         // Crossfade when the root identity changes — drill-in,
         // drill-out, or a fresh scan. Skip when the user has Reduce
         // Motion enabled or layer isn't available.
-        let newRootID = ObjectIdentifier(root)
         if let last = lastRenderedRoot, last != newRootID,
            !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion,
            let layer {
@@ -155,36 +187,65 @@ final class TreemapNSView: NSView, NSDraggingSource {
         let highlight = highlightedKindID
         let cushion = !NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
 
+        // Disk Inventory X convention: kind colors belong to FILES only.
+        // Directories are implicit grouping — a neutral tone that shows
+        // through as thin frames around their children. Painting
+        // directories with a kind color (they'd all be "Other" yellow)
+        // is what makes a treemap read as meaningless flat blocks.
+        let dirFill = isDark
+            ? NSColor(white: 0.24, alpha: 1.0)
+            : NSColor(white: 0.80, alpha: 1.0)
+
         for cell in cells {
             guard cell.depth > 0 else { continue }
             guard cell.rect.intersects(dirtyRect) else { continue }
             guard let node = nodeIndex[cell.nodeID] else { continue }
 
-            let dimmed = highlight != nil && node.kindID != highlight
-            let baseColor = palette.nsColor(for: node.kindID)
-            let depthAdjusted = colorAdjustedForDepth(baseColor, depth: cell.depth, isDark: isDark)
-            let finalColor = dimmed
-                ? depthAdjusted.withAlphaComponent(0.18)
-                : depthAdjusted
+            let isLeafCell = !node.isContainer
+            let dimmed = highlight != nil && (!isLeafCell || node.kindID != highlight)
 
-            context.setFillColor(finalColor.cgColor)
-            context.fill(cell.rect)
+            if isLeafCell {
+                let baseColor = palette.nsColor(for: node.kindID)
+                // Dim by blending toward the background opaquely — an
+                // alpha fill would composite over whatever was painted
+                // underneath (the parent frame) instead of receding.
+                let finalColor = dimmed
+                    ? (baseColor.blended(withFraction: 0.85, of: dirFill) ?? baseColor)
+                    : baseColor
+                context.setFillColor(finalColor.cgColor)
+                context.fill(cell.rect)
 
-            if cushion, !dimmed, cushionIntensity > 0.01, cell.rect.width >= 6, cell.rect.height >= 6 {
-                drawCushion(in: cell.rect, context: context, isDark: isDark)
+                if cushion, !dimmed, cushionIntensity > 0.01,
+                   cell.rect.width >= 3, cell.rect.height >= 3 {
+                    drawCushion(in: cell.rect, context: context, isDark: isDark)
+                }
+                if node.isSynthetic, cell.rect.width >= 40, cell.rect.height >= 16 {
+                    drawSyntheticLabel(for: node, in: cell.rect, context: context, isDark: isDark)
+                }
+            } else {
+                // Directory: neutral, slightly darker per depth so the
+                // nesting frames stay readable.
+                let fill = colorAdjustedForDepth(dirFill, depth: cell.depth, isDark: isDark)
+                context.setFillColor((dimmed ? fill.withAlphaComponent(0.3) : fill).cgColor)
+                context.fill(cell.rect)
             }
 
             if cell.rect.width >= 4 && cell.rect.height >= 4 {
-                context.setStrokeColor(NSColor.black.withAlphaComponent(isDark ? 0.30 : 0.18).cgColor)
+                context.setStrokeColor(NSColor.black.withAlphaComponent(isDark ? 0.35 : 0.22).cgColor)
                 context.setLineWidth(0.5)
                 context.stroke(cell.rect.insetBy(dx: 0.25, dy: 0.25))
             }
         }
 
-        // Hover ring (drawn before selection so selection wins).
+        // Hover: lighten the hovered cell — much easier to spot than a
+        // hairline ring, and mirrors DIX's hover feedback.
         if let hoveredNodeID,
-           let cell = cells.first(where: { $0.nodeID == hoveredNodeID && $0.depth > 0 }) {
-            context.setStrokeColor(NSColor.controlAccentColor.withAlphaComponent(0.4).cgColor)
+           let cell = cells.last(where: { $0.nodeID == hoveredNodeID && $0.depth > 0 }) {
+            context.setFillColor(NSColor.white.withAlphaComponent(isDark ? 0.18 : 0.28).cgColor)
+            context.setBlendMode(.plusLighter)
+            context.fill(cell.rect)
+            context.setBlendMode(.normal)
+            context.setStrokeColor(NSColor.controlAccentColor.withAlphaComponent(0.9).cgColor)
             context.setLineWidth(1)
             context.stroke(cell.rect.insetBy(dx: 0.5, dy: 0.5))
         }
@@ -207,30 +268,78 @@ final class TreemapNSView: NSView, NSDraggingSource {
         }
     }
 
-    /// Top-left → bottom-right linear gradient via `.multiply`. Cheap
-    /// approximation of the Bruls/van Wijk cushion treemap; reads as
-    /// gentle 3-D shading without per-pixel work.
+    /// Two-pass pillow shading approximating the Bruls/van Wijk cushion
+    /// treemap: a `.plusLighter` highlight falling from the top-left and
+    /// a `.multiply` shadow toward the bottom-right. Reads as the
+    /// classic Disk Inventory X 3-D pillow without per-pixel work.
     private func drawCushion(in rect: CGRect, context: CGContext, isDark: Bool) {
+        guard let (hi, lo) = cushionGradients(isDark: isDark) else { return }
         context.saveGState()
         defer { context.restoreGState() }
         context.clip(to: rect)
+
+        let start = CGPoint(x: rect.minX, y: rect.minY)
+        let end = CGPoint(x: rect.maxX, y: rect.maxY)
+        context.setBlendMode(.plusLighter)
+        context.drawLinearGradient(hi, start: start, end: end, options: [])
         context.setBlendMode(.multiply)
-        let baseIntensity: CGFloat = isDark ? 0.10 : 0.18
-        let intensity = baseIntensity * cushionIntensity
-        let colors = [
-            NSColor(white: 1.0, alpha: 1.0 - intensity * 0.5).cgColor,
-            NSColor(white: 1.0 - intensity, alpha: 1.0).cgColor,
+        context.drawLinearGradient(lo, start: start, end: end, options: [])
+    }
+
+    private func cushionGradients(isDark: Bool) -> (CGGradient, CGGradient)? {
+        let key = "\(isDark)-\(cushionIntensity)"
+        if let cached = cachedGradients, cached.key == key {
+            return (cached.highlight, cached.shadow)
+        }
+        let strength = cushionIntensity
+        let space = CGColorSpaceCreateDeviceRGB()
+        let hiAlpha = (isDark ? 0.22 : 0.34) * strength
+        let shadowDepth = (isDark ? 0.30 : 0.38) * strength
+        guard
+            let hi = CGGradient(
+                colorsSpace: space,
+                colors: [
+                    NSColor(white: 1.0, alpha: hiAlpha).cgColor,
+                    NSColor(white: 1.0, alpha: 0.0).cgColor,
+                ] as CFArray,
+                locations: [0, 0.55]
+            ),
+            let lo = CGGradient(
+                colorsSpace: space,
+                colors: [
+                    NSColor(white: 1.0, alpha: 1.0).cgColor,
+                    NSColor(white: 1.0 - shadowDepth, alpha: 1.0).cgColor,
+                ] as CFArray,
+                locations: [0.45, 1]
+            )
+        else { return nil }
+        cachedGradients = (key, hi, lo)
+        return (hi, lo)
+    }
+
+    /// Free space / Other space cells get an inline caption when big
+    /// enough — grey blocks with no label would read as a bug.
+    private func drawSyntheticLabel(for node: FSNode, in rect: CGRect, context: CGContext, isDark: Bool) {
+        let text = "\(node.displayName) — \(ByteFormatter.format(node.physicalSize))" as NSString
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 11, weight: .medium),
+            .foregroundColor: isDark ? NSColor(white: 0.75, alpha: 1) : NSColor(white: 0.35, alpha: 1),
         ]
-        guard let gradient = CGGradient(
-            colorsSpace: CGColorSpaceCreateDeviceRGB(),
-            colors: colors as CFArray,
-            locations: [0, 1]
-        ) else { return }
-        context.drawLinearGradient(
-            gradient,
-            start: CGPoint(x: rect.minX, y: rect.minY),
-            end: CGPoint(x: rect.maxX, y: rect.maxY),
-            options: []
+        let size = text.size(withAttributes: attributes)
+        guard size.width <= rect.width - 8 else {
+            let short = node.displayName as NSString
+            let shortSize = short.size(withAttributes: attributes)
+            if shortSize.width <= rect.width - 8 {
+                short.draw(
+                    at: CGPoint(x: rect.midX - shortSize.width / 2, y: rect.midY - shortSize.height / 2),
+                    withAttributes: attributes
+                )
+            }
+            return
+        }
+        text.draw(
+            at: CGPoint(x: rect.midX - size.width / 2, y: rect.midY - size.height / 2),
+            withAttributes: attributes
         )
     }
 
@@ -268,11 +377,25 @@ final class TreemapNSView: NSView, NSDraggingSource {
     private func updateHover(at point: CGPoint) {
         let hit = hitTestCell(at: point)
         let newID = hit.map(ObjectIdentifier.init)
-        if newID != hoveredNodeID {
-            hoveredNodeID = newID
-            needsDisplay = true
-            toolTip = hit.map(Self.tooltipText(for:))
+        guard newID != hoveredNodeID else { return }
+
+        // Invalidate only the union of the previous and next hovered
+        // cells; the intersects(dirtyRect) cull in draw() keeps the
+        // repaint to a handful of cells instead of the whole map.
+        let oldRect = hoveredNodeID.flatMap { id in
+            cells.last(where: { $0.nodeID == id && $0.depth > 0 })?.rect
         }
+        hoveredNodeID = newID
+        let newRect = newID.flatMap { id in
+            cells.last(where: { $0.nodeID == id && $0.depth > 0 })?.rect
+        }
+        switch (oldRect, newRect) {
+        case let (old?, new?): setNeedsDisplay(old.union(new).insetBy(dx: -2, dy: -2))
+        case let (old?, nil):  setNeedsDisplay(old.insetBy(dx: -2, dy: -2))
+        case let (nil, new?):  setNeedsDisplay(new.insetBy(dx: -2, dy: -2))
+        default: break
+        }
+        toolTip = hit.map(Self.tooltipText(for:))
     }
 
     /// Multi-line tooltip with name, size, kind and the full path so
@@ -327,7 +450,7 @@ final class TreemapNSView: NSView, NSDraggingSource {
         // treemap reflects what the menu is acting on.
         onSelect?(hit)
         selectedNodeID = ObjectIdentifier(hit)
-        return ItemContextMenu.make(for: hit)
+        return ItemContextMenu.make(for: hit, onTrash: onTrash)
     }
 
     override func mouseDragged(with event: NSEvent) {

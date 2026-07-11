@@ -25,8 +25,12 @@ struct RootView: View {
     @State private var drillStack: [FSNode] = []
     @State private var fullDiskAccess = PermissionsProbe.hasFullDiskAccess()
     @State private var lastRecordedRoot: URL?
+    /// Bumped whenever the tree is mutated in place (trash, subtree
+    /// refresh) so AppKit-backed hosts know to re-layout/reload.
+    @State private var treeVersion = 0
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.controlActiveState) private var controlActiveState
 
     init(scanID: ScanID?) {
         self.initialScanID = scanID
@@ -49,7 +53,7 @@ struct RootView: View {
             .toolbar { toolbar }
         }
         .inspector(isPresented: $inspectorVisible) {
-            InspectorPlaceholderView(node: selectedNode)
+            InspectorPlaceholderView(node: selectedNode, onTrashed: handleTrashed)
                 .inspectorColumnWidth(min: 240, ideal: 300, max: 420)
         }
         .onChange(of: scenePhase) { _, phase in
@@ -80,13 +84,24 @@ struct RootView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .openFolderRequested)) { _ in
+            // Menu commands broadcast app-wide; only the key window
+            // may react, otherwise every open window presents a sheet.
+            guard controlActiveState == .key else { return }
             showFolderImporter = true
         }
         .onReceive(NotificationCenter.default.publisher(for: .saveScanRequested)) { _ in
+            guard controlActiveState == .key else { return }
             triggerSaveScan()
         }
         .onReceive(NotificationCenter.default.publisher(for: .openSavedScanRequested)) { _ in
+            guard controlActiveState == .key else { return }
             showSavedScanImporter = true
+        }
+        .onDisappear {
+            // Window closed — release the scan tree (potentially GBs).
+            if let id = scanID {
+                registry.discard(id)
+            }
         }
         .fileImporter(
             isPresented: $showFolderImporter,
@@ -152,21 +167,19 @@ struct RootView: View {
         return target == rootPath || target.hasPrefix(rootPath + "/")
     }
 
-    /// Either run the scan in this window (when it's the empty landing
-    /// window) or open a new window for the new scan.
+    /// Always adopt the new scan in THIS window — Finder/DIX-style
+    /// predictability: navigation never spawns windows behind the
+    /// user's back. Want a second window? File → New Window (⇧⌘N),
+    /// then scan there.
     private func openScan(url: URL) {
+        let oldID = scanID
         let id = registry.startNewScan(url: url, options: settings.scanOptions)
-        if scanID == nil {
-            // Empty landing window — adopt the new scan in place.
-            selectedNode = nil
-            highlightedKind = nil
-            drillStack = []
-            lastRecordedRoot = nil
-            scanID = id
-        } else {
-            // This window already shows a scan; open a new window.
-            openWindow(value: ScanID?.some(id))
-        }
+        selectedNode = nil
+        highlightedKind = nil
+        drillStack = []
+        lastRecordedRoot = nil
+        scanID = id
+        if let oldID { registry.discard(oldID) }
     }
 
     /// Encode the current scan and trigger the .dscan exporter.
@@ -215,16 +228,14 @@ struct RootView: View {
                 totalDirectories: Int64(totalDirs),
                 totalBytes: root.physicalSize
             )
-            if scanID == nil {
-                let id = registry.adopt(result: result)
-                selectedNode = nil
-                drillStack = []
-                lastRecordedRoot = nil
-                scanID = id
-            } else {
-                let id = registry.adopt(result: result)
-                openWindow(value: ScanID?.some(id))
-            }
+            let oldID = scanID
+            let id = registry.adopt(result: result)
+            selectedNode = nil
+            highlightedKind = nil
+            drillStack = []
+            lastRecordedRoot = nil
+            scanID = id
+            if let oldID { registry.discard(oldID) }
         } catch {
             saveErrorMessage = "Couldn't open .dscan: \(error.localizedDescription)"
         }
@@ -239,6 +250,18 @@ struct RootView: View {
         var count = node.isContainer ? 1 : 0
         for child in node.children { count += countDirectories(in: child) }
         return count
+    }
+
+    /// A node was moved to the Trash (inspector button or context
+    /// menu). Reflect the deletion immediately: unlink the node so
+    /// sizes bubble up, then invalidate the AppKit-backed hosts.
+    private func handleTrashed(_ node: FSNode) {
+        node.parent?.removeChild(node)
+        if drillStack.contains(where: { $0 === node }) {
+            drillStack = []
+        }
+        selectedNode = nil
+        treeVersion += 1
     }
 
     /// Re-scan the currently shown root in the same window.
@@ -314,6 +337,7 @@ struct RootView: View {
                     highlightedKind: $highlightedKind,
                     kindsBarVisible: kindsBarVisible,
                     drillStack: drillStack,
+                    treeVersion: treeVersion,
                     cushionIntensity: settings.cushionIntensity,
                     depthContrast: settings.depthContrast,
                     sizeMetric: settings.sizeMode == .logical ? .logical : .physical,
@@ -329,6 +353,7 @@ struct RootView: View {
                         drillStack.removeLast(drillStack.count - target)
                         selectedNode = nil
                     },
+                    onTrashed: handleTrashed,
                     rootName: result.rootURL.lastPathComponent.isEmpty
                         ? result.rootURL.path
                         : result.rootURL.lastPathComponent
@@ -497,15 +522,22 @@ struct ContentSplitView: View {
     @Binding var highlightedKind: FileKind.ID?
     let kindsBarVisible: Bool
     let drillStack: [FSNode]
+    let treeVersion: Int
     let cushionIntensity: Double
     let depthContrast: Double
     let sizeMetric: TreemapLayout.SizeMetric
     let algorithm: TreemapLayout.Algorithm
     var onDrillIn: (FSNode) -> Void
     var onDrillUp: (Int) -> Void
+    var onTrashed: ((FSNode) -> Void)? = nil
     let rootName: String
 
     @State private var aggregates: [KindAggregate] = []
+
+    private struct AggregationKey: Hashable {
+        let rootID: ObjectIdentifier
+        let version: Int
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -515,18 +547,22 @@ struct ContentSplitView: View {
             VSplitView {
                 OutlineHost(
                     root: root,
-                    selectedNode: $selectedNode
+                    selectedNode: $selectedNode,
+                    treeVersion: treeVersion,
+                    onTrash: onTrashed
                 )
                 .frame(minHeight: 160, idealHeight: 280)
                 TreemapHost(
                     root: root,
                     selectedNode: $selectedNode,
                     highlightedKind: highlightedKind,
+                    treeVersion: treeVersion,
                     cushionIntensity: cushionIntensity,
                     depthContrast: depthContrast,
                     sizeMetric: sizeMetric,
                     algorithm: algorithm,
-                    onDrillIn: onDrillIn
+                    onDrillIn: onDrillIn,
+                    onTrash: onTrashed
                 )
                 .frame(minHeight: 200, idealHeight: 360)
                 .background(Color(nsColor: .windowBackgroundColor))
@@ -539,7 +575,7 @@ struct ContentSplitView: View {
                 )
             }
         }
-        .task(id: ObjectIdentifier(root)) {
+        .task(id: AggregationKey(rootID: ObjectIdentifier(root), version: treeVersion)) {
             aggregates = KindsAggregator.aggregate(root)
         }
     }
@@ -654,10 +690,11 @@ struct ScanFailedView: View {
 
 struct InspectorPlaceholderView: View {
     let node: FSNode?
+    var onTrashed: ((FSNode) -> Void)? = nil
 
     var body: some View {
         if let node {
-            InspectorContent(node: node)
+            InspectorContent(node: node, onTrashed: onTrashed)
         } else {
             VStack(spacing: 12) {
                 Image(systemName: "doc.text.magnifyingglass")
@@ -674,6 +711,7 @@ struct InspectorPlaceholderView: View {
 
 private struct InspectorContent: View {
     let node: FSNode
+    var onTrashed: ((FSNode) -> Void)? = nil
     @State private var trashError: String?
     @State private var showTrashConfirm = false
 
@@ -722,7 +760,7 @@ private struct InspectorContent: View {
             Button("Move to Trash", role: .destructive) { performTrash() }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text("This will move the item to the system Trash. The treemap won't update until the next refresh.")
+            Text("The item moves to the system Trash and disappears from the map immediately.")
         }
     }
 
@@ -773,6 +811,7 @@ private struct InspectorContent: View {
     private func performTrash() {
         do {
             _ = try FileActions.moveToTrash(node.url)
+            onTrashed?(node)
         } catch {
             trashError = "Couldn't move to Trash: \(error.localizedDescription)"
         }
