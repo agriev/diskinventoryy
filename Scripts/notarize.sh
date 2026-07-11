@@ -20,9 +20,10 @@ ZIP="$(dirname "$APP_PATH")/$(basename "$APP_PATH" .app).zip"
 ditto -c -k --keepParent "$APP_PATH" "$ZIP"
 
 submit() {
-  if security find-generic-password -s "com.apple.gke.notary.tool" \
-       -a "$NOTARY_PROFILE" >/dev/null 2>&1 \
-     || security find-generic-password -l "$NOTARY_PROFILE" >/dev/null 2>&1; then
+  # Probe the profile with notarytool itself — store-credentials keeps
+  # items in the data-protection keychain where the legacy `security`
+  # search can't see them.
+  if xcrun notarytool history --keychain-profile "$NOTARY_PROFILE" >/dev/null 2>&1; then
     xcrun notarytool submit "$ZIP" --keychain-profile "$NOTARY_PROFILE" --wait
     return $?
   fi
