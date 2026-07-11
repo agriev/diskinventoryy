@@ -31,7 +31,11 @@ final class ScanController {
     }
 
     func scan(url: URL, options: ScanOptions = .default) {
-        cancel()
+        // Only cancel the local drive task here. scanner.start() cancels
+        // the previous worker itself, on the actor, in order — firing an
+        // unstructured `Task { scanner.cancel() }` from here could land
+        // AFTER the new start() and kill the fresh scan.
+        driveTask?.cancel()
         rootURL = url
         progress = .zero
         result = nil
@@ -99,12 +103,18 @@ final class ScanController {
         let stream = await scanner.start(at: url, options: options)
         var lastPhase: ScanProgress.Phase = .preparing
         for await update in stream {
+            if Task.isCancelled { break }
             self.progress = update
             lastPhase = update.phase
             if update.phase == .done || update.phase == .cancelled {
                 break
             }
         }
+
+        // A superseded drive (scan() started a newer one and cancelled
+        // us) wakes up here with a nil-terminated stream. It must not
+        // touch `phase` — that would stomp the new scan's state.
+        if Task.isCancelled { return }
 
         switch lastPhase {
         case .done:

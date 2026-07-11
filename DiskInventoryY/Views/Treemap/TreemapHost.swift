@@ -13,10 +13,12 @@ struct TreemapHost: NSViewRepresentable {
     var algorithm: TreemapLayout.Algorithm = .squarified
     var onDrillIn: ((FSNode) -> Void)? = nil
     var onTrash: ((FSNode) -> Void)? = nil
+    @Environment(\.kindColors) private var kindColors
 
     func makeNSView(context: Context) -> TreemapNSView {
         let view = TreemapNSView()
         view.root = root
+        view.kindColors = kindColors
         view.cushionIntensity = CGFloat(cushionIntensity)
         view.depthContrast = CGFloat(depthContrast)
         view.sizeMetric = sizeMetric
@@ -49,6 +51,7 @@ struct TreemapHost: NSViewRepresentable {
         if nsView.algorithm != algorithm {
             nsView.algorithm = algorithm
         }
+        nsView.kindColors = kindColors
         nsView.treeVersion = treeVersion
         nsView.cushionIntensity = CGFloat(cushionIntensity)
         nsView.depthContrast = CGFloat(depthContrast)

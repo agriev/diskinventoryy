@@ -16,6 +16,7 @@ struct OutlineHost: NSViewRepresentable {
     var sortDescriptors: [NSSortDescriptor] = [
         NSSortDescriptor(key: "size", ascending: false)
     ]
+    @Environment(\.kindColors) private var kindColors
 
     final class Coordinator: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate {
         var parent: OutlineHost
@@ -24,6 +25,7 @@ struct OutlineHost: NSViewRepresentable {
         var currentSort: [NSSortDescriptor] = []
         var lastRootID: ObjectIdentifier?
         var lastTreeVersion = -1
+        var lastKindColors = KindColorMap.fallback
 
         init(_ parent: OutlineHost) {
             self.parent = parent
@@ -90,7 +92,7 @@ struct OutlineHost: NSViewRepresentable {
             switch column.identifier.rawValue {
             case "name":
                 cell.imageView?.image = IconCache.shared.icon(for: node)
-                cell.swatch.fillColor = ColorPalette.shared.nsColor(for: node.kindID)
+                cell.swatch.fillColor = parent.kindColors.nsColor(for: node.kindID)
                 cell.textField?.stringValue = node.displayName
             case "size":
                 cell.textField?.stringValue = ByteFormatter.format(node.physicalSize)
@@ -182,6 +184,13 @@ struct OutlineHost: NSViewRepresentable {
         if coordinator.lastTreeVersion != treeVersion {
             coordinator.lastTreeVersion = treeVersion
             coordinator.sortedChildrenCache.removeAll()
+            needsReload = true
+        }
+        if coordinator.lastKindColors != kindColors {
+            coordinator.lastKindColors = kindColors
+            // Row structure is unchanged — only the swatch colors are
+            // stale. reloadData is cheap enough here (fires once per
+            // scan when the ranked palette lands).
             needsReload = true
         }
         if needsReload {

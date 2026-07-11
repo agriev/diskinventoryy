@@ -24,6 +24,9 @@ struct RootView: View {
     @State private var highlightedKind: FileKind.ID?
     @State private var drillStack: [FSNode] = []
     @State private var fullDiskAccess = PermissionsProbe.hasFullDiskAccess()
+    /// Per-scan DIX palette assignment (largest kind → blue, …).
+    /// Recomputed once per completed scan; .fallback until then.
+    @State private var kindColors = KindColorMap.fallback
     @State private var lastRecordedRoot: URL?
     /// Bumped whenever the tree is mutated in place (trash, subtree
     /// refresh) so AppKit-backed hosts know to re-layout/reload.
@@ -56,6 +59,7 @@ struct RootView: View {
             InspectorPlaceholderView(node: selectedNode, onTrashed: handleTrashed)
                 .inspectorColumnWidth(min: 240, ideal: 300, max: 420)
         }
+        .environment(\.kindColors, kindColors)
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 fullDiskAccess = PermissionsProbe.hasFullDiskAccess()
@@ -66,6 +70,12 @@ struct RootView: View {
             highlightedKind = nil
             drillStack = []
             lastRecordedRoot = nil
+            kindColors = .fallback
+            if let result = controller?.result {
+                // Adopted scans (.dscan import) arrive already .done —
+                // the phase onChange below won't fire for them.
+                kindColors = Self.rankedColors(for: result.root)
+            }
         }
         .onChange(of: controller?.phase) { _, phase in
             guard let phase else { return }
@@ -81,6 +91,7 @@ struct RootView: View {
                 lastRecordedRoot = result.rootURL
                 drillStack = []
                 selectedNode = nil
+                kindColors = Self.rankedColors(for: result.root)
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .openFolderRequested)) { _ in
@@ -265,6 +276,12 @@ struct RootView: View {
     }
 
     /// Re-scan the currently shown root in the same window.
+    /// Disk Inventory X palette assignment: kinds ranked by total
+    /// physical size get palette slots in order (blue, red, green, …).
+    private static func rankedColors(for root: FSNode) -> KindColorMap {
+        KindColorMap(rankedKindIDs: KindsAggregator.aggregate(root).map(\.id))
+    }
+
     private func refreshScan() {
         guard let controller, let url = controller.result?.rootURL ?? controller.rootURL else { return }
         selectedNode = nil
@@ -710,6 +727,7 @@ struct InspectorPlaceholderView: View {
 }
 
 private struct InspectorContent: View {
+    @Environment(\.kindColors) private var kindColors
     let node: FSNode
     var onTrashed: ((FSNode) -> Void)? = nil
     @State private var trashError: String?
@@ -720,7 +738,7 @@ private struct InspectorContent: View {
             VStack(alignment: .leading, spacing: 14) {
                 HStack(alignment: .center, spacing: 10) {
                     Circle()
-                        .fill(ColorPalette.shared.color(for: node.kindID))
+                        .fill(kindColors.color(for: node.kindID))
                         .frame(width: 12, height: 12)
                     Text(node.displayName)
                         .font(.title3)

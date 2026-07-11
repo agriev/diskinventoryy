@@ -13,8 +13,10 @@ final class TreemapNSView: NSView, NSDraggingSource {
         didSet { rebuildLayout() }
     }
 
-    var palette: ColorPalette = .shared {
-        didSet { needsDisplay = true }
+    /// Per-scan kind→color assignment (Disk Inventory X palette,
+    /// rank-ordered). Injected by TreemapHost from the environment.
+    var kindColors: KindColorMap = .fallback {
+        didSet { if oldValue != kindColors { needsDisplay = true } }
     }
 
     /// 0 = no shading, 1 = strong cushion. Read from AppSettings.
@@ -205,7 +207,7 @@ final class TreemapNSView: NSView, NSDraggingSource {
             let dimmed = highlight != nil && (!isLeafCell || node.kindID != highlight)
 
             if isLeafCell {
-                let baseColor = palette.nsColor(for: node.kindID)
+                let baseColor = kindColors.nsColor(for: node.kindID)
                 // Dim by blending toward the background opaquely — an
                 // alpha fill would composite over whatever was painted
                 // underneath (the parent frame) instead of receding.
@@ -491,7 +493,7 @@ final class TreemapNSView: NSView, NSDraggingSource {
         image.lockFocus()
         defer { image.unlockFocus() }
         guard let context = NSGraphicsContext.current?.cgContext else { return image }
-        let baseColor = palette.nsColor(for: node.kindID).withAlphaComponent(0.85)
+        let baseColor = kindColors.nsColor(for: node.kindID).withAlphaComponent(0.85)
         context.setFillColor(baseColor.cgColor)
         context.fill(CGRect(origin: .zero, size: size))
         context.setStrokeColor(NSColor.black.withAlphaComponent(0.4).cgColor)

@@ -2,7 +2,7 @@
 
 A modern disk inventory tool for macOS, written in Swift and SwiftUI. Treemap-based visualization of disk usage, ground-up rewrite of [Disk Inventory X](https://gitlab.com/tderlien/disk-inventory-x).
 
-> Status: **v1.1.0** — the Disk Inventory X parity release. Parallel scanner (~6.6M files in ~9 min on an M1, live progress); DIX-style treemap: kind colors belong to *files only*, directories render as neutral grouping frames, stronger cushion shading, full-depth detail; predictable single-window navigation (drives/recents/drops load in place; new windows only via File → New Window, ⇧⌘N); Move to Trash updates the map instantly; cycle-safe traversal (APFS mountpoint loops). Plus everything from v1.0.0.
+> Status: **v1.2.0** — the authentic Disk Inventory X color scheme. The treemap palette is ported verbatim from DIX's `FileTypeColors.m` (blue, red, green, cyan, magenta, yellow + light variants, grayscale ramp past 12 kinds) and assigned by size rank per scan — the dominant kind is always blue, the runner-up red. Also fixes a race where rapid re-scans could stomp a fresh scan's state with "Scan ended unexpectedly". Plus everything from v1.1.0 (parallel scanner, DIX-style file-only coloring, single-window navigation).
 >
 > Landing page: <https://agriev.github.io/diskinventoryy/>. Builds are universal (arm64 + x86_64) but ad-hoc-signed; see [Releases & signing](#releases--signing) below for the secrets needed to ship notarized DMGs.
 

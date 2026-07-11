@@ -7,6 +7,7 @@ struct KindsBarView: View {
     let aggregates: [KindAggregate]
     let totalBytes: Int64
     @Binding var highlightedKind: FileKind.ID?
+    @Environment(\.kindColors) private var kindColors
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -39,7 +40,7 @@ struct KindsBarView: View {
         } label: {
             HStack(spacing: 6) {
                 Circle()
-                    .fill(ColorPalette.shared.color(for: kind.id))
+                    .fill(kindColors.color(for: kind.id))
                     .frame(width: 8, height: 8)
                 Text(kind.displayName)
                     .font(.callout)

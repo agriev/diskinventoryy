@@ -33,6 +33,7 @@
 		6DEA40A104B654A09F8A521F /* FileActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BB0B9FF08A89827755309ED /* FileActions.swift */; };
 		7762A9F2149F9C53332525D7 /* FSNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D000355FCEE6EC7852BF55 /* FSNode.swift */; };
 		783523E8213724D26E0C28A1 /* ColorPaletteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDD66D325E882BC7AD4080B2 /* ColorPaletteTests.swift */; };
+		926C5B0F2510CA57C91AEEEE /* KindColorMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1465BC65B9BC35FF58C5F7E /* KindColorMap.swift */; };
 		9A212EE6F946E322325DB462 /* ScanID.swift in Sources */ = {isa = PBXBuildFile; fileRef = D86E1B688154CD4CE31057E7 /* ScanID.swift */; };
 		9D6AE3F4EC195C7C8BD91BD2 /* TreemapLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07738E46FEC47B6463FE6944 /* TreemapLayout.swift */; };
 		9E46334CCD50ECD37A6AFFDA /* PermissionsBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93DA6EA20CCC7C6DE8C02A9A /* PermissionsBanner.swift */; };
@@ -41,6 +42,7 @@
 		AE7FEF0F2572749C499295EB /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6806DAB26347009ACD5C4286 /* RootView.swift */; };
 		AF7E096DECABB4452017CD84 /* RecentsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9295A1DDCC721862A254D127 /* RecentsStore.swift */; };
 		B9D6280630632AB50298BB4C /* SavedScanDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FB85D5BB7E2C0EDEB94BBE5 /* SavedScanDocument.swift */; };
+		C03FBDDB85057E2A54DBA705 /* KindColorMapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59A9309697E511AB135A10C7 /* KindColorMapTests.swift */; };
 		C8286B1711DED4FE560C9E21 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A7AD5169BA2C0111DE9B33 /* SettingsView.swift */; };
 		CDC479EEC4E9861214E4CC4C /* FilesystemEnumeratorBulk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97B471553FCB150922C72C23 /* FilesystemEnumeratorBulk.swift */; };
 		CE4AE38D77A5A5AEE7C00237 /* KindDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0277EF355739BD2F40F145 /* KindDetectorTests.swift */; };
@@ -98,6 +100,7 @@
 		4BB0B9FF08A89827755309ED /* FileActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileActions.swift; sourceTree = "<group>"; };
 		512EF98FFF647F9F1C8C377B /* SavedScanCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedScanCodec.swift; sourceTree = "<group>"; };
 		580DC0E69D0DC9CA6856E670 /* FSNodeAggregationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSNodeAggregationTests.swift; sourceTree = "<group>"; };
+		59A9309697E511AB135A10C7 /* KindColorMapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KindColorMapTests.swift; sourceTree = "<group>"; };
 		6016D720BD5808B4CE06707A /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		6806DAB26347009ACD5C4286 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		7B194700BBACDAA09241E66B /* SmokeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeUITests.swift; sourceTree = "<group>"; };
@@ -119,6 +122,7 @@
 		9DB204C2FBB43C4C63197611 /* DiskInventoryYTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DiskInventoryYTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9FFD1B2C25EFBD3373EC1487 /* FSFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSFlags.swift; sourceTree = "<group>"; };
 		A0FEEEC46E65D47F4EF1A0D4 /* Scanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scanner.swift; sourceTree = "<group>"; };
+		A1465BC65B9BC35FF58C5F7E /* KindColorMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KindColorMap.swift; sourceTree = "<group>"; };
 		A468C532525C6AEFC9E2AF23 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		A9D000355FCEE6EC7852BF55 /* FSNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSNode.swift; sourceTree = "<group>"; };
 		AF0277EF355739BD2F40F145 /* KindDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KindDetectorTests.swift; sourceTree = "<group>"; };
@@ -159,6 +163,7 @@
 				97B471553FCB150922C72C23 /* FilesystemEnumeratorBulk.swift */,
 				0D2DDBCC9DCE534D2A6FC499 /* FilesystemEnumeratorFallback.swift */,
 				8288C97C1E138930BA3F59A4 /* IconCache.swift */,
+				A1465BC65B9BC35FF58C5F7E /* KindColorMap.swift */,
 				D644E501EC0623B8A2C3FFEA /* KindDetector.swift */,
 				D98EB15CEC5BDD1A9425B28B /* KindRegistry.swift */,
 				8BA837092BB76F49D3F2B760 /* KindsAggregator.swift */,
@@ -345,6 +350,7 @@
 				BDD66D325E882BC7AD4080B2 /* ColorPaletteTests.swift */,
 				09C2E2EF0C4E45B059FB1E00 /* FixtureBuilder.swift */,
 				580DC0E69D0DC9CA6856E670 /* FSNodeAggregationTests.swift */,
+				59A9309697E511AB135A10C7 /* KindColorMapTests.swift */,
 				AF0277EF355739BD2F40F145 /* KindDetectorTests.swift */,
 				BFDDE6E14E2CF08073D3A371 /* KindsAggregatorTests.swift */,
 				CC1B96B11B45FDD75861F904 /* SavedScanCodecTests.swift */,
@@ -507,6 +513,7 @@
 				4935D9A0C5F824B8C4FA22D4 /* FilesystemEnumeratorFallback.swift in Sources */,
 				EF898F0B2F4CA8CCF6973509 /* IconCache.swift in Sources */,
 				E0D53FBB1B15BF139C2AA48C /* ItemContextMenu.swift in Sources */,
+				926C5B0F2510CA57C91AEEEE /* KindColorMap.swift in Sources */,
 				2AEA25C5887ACF4ECA22A01F /* KindDetector.swift in Sources */,
 				F30A4CDE506F9963A91D479F /* KindRegistry.swift in Sources */,
 				4BB5B2EAFCF14D11BCA330E5 /* KindsAggregator.swift in Sources */,
@@ -543,6 +550,7 @@
 				783523E8213724D26E0C28A1 /* ColorPaletteTests.swift in Sources */,
 				EEBE14F1451EE391B2F42C48 /* FSNodeAggregationTests.swift in Sources */,
 				F611C0E7262BD9DB04F557BF /* FixtureBuilder.swift in Sources */,
+				C03FBDDB85057E2A54DBA705 /* KindColorMapTests.swift in Sources */,
 				CE4AE38D77A5A5AEE7C00237 /* KindDetectorTests.swift in Sources */,
 				2433C39D7AB1128C5EAD436D /* KindsAggregatorTests.swift in Sources */,
 				AD0C86F150482A12DDAE80D1 /* SavedScanCodecTests.swift in Sources */,
