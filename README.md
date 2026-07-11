@@ -4,7 +4,7 @@ A modern disk inventory tool for macOS, written in Swift and SwiftUI. Treemap-ba
 
 > Status: **v1.2.0** — the authentic Disk Inventory X color scheme. The treemap palette is ported verbatim from DIX's `FileTypeColors.m` (blue, red, green, cyan, magenta, yellow + light variants, grayscale ramp past 12 kinds) and assigned by size rank per scan — the dominant kind is always blue, the runner-up red. Also fixes a race where rapid re-scans could stomp a fresh scan's state with "Scan ended unexpectedly". Plus everything from v1.1.0 (parallel scanner, DIX-style file-only coloring, single-window navigation).
 >
-> Landing page: <https://agriev.github.io/diskinventoryy/>. Builds are universal (arm64 + x86_64) but ad-hoc-signed; see [Releases & signing](#releases--signing) below for the secrets needed to ship notarized DMGs.
+> Landing page: <https://agriev.github.io/diskinventoryy/>. Builds are universal (arm64 + x86_64); releases from v1.2.1 onward are Developer ID-signed and notarized (built locally via `Scripts/BuildSignedRelease.sh` — no Apple credentials ever leave the maintainer's Keychain).
 
 ## Requirements
 
@@ -78,7 +78,7 @@ DiskInventoryY is a from-scratch Swift/SwiftUI rewrite of [Disk Inventory X](htt
 
 ## Releases & signing
 
-Tagged releases (`v*`) trigger `.github/workflows/release.yml`, which always produces an **ad-hoc-signed** DMG and attaches it to the GitHub Release. Users have to right-click → Open the first time, or run `xattr -dr com.apple.quarantine /Applications/DiskInventoryY.app`.
+Tagged releases (`v*`) trigger `.github/workflows/release.yml`, which produces an **ad-hoc-signed** DMG as a CI artifact; the published DMG is then replaced by a locally built, Developer ID-signed and notarized one (`Scripts/BuildSignedRelease.sh` + `gh release upload --clobber`). Releases ≤ v1.2.0 still carry the ad-hoc build — right-click → Open on first launch for those.
 
 For a properly signed and notarized build there are two paths.
 
