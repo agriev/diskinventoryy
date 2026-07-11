@@ -133,9 +133,10 @@ hdiutil create \
 # Sign the DMG so Safari/Gatekeeper recognise it as authored.
 codesign --force --sign "$SIGN_IDENTITY" --timestamp "$DMG"
 
-# Staple the notarization ticket onto the DMG too — lets users launch
-# offline without Apple's servers being reachable.
+# The DMG needs its own notarization ticket — the .app's ticket does
+# not cover the container. Submit the DMG, then staple it.
 if [ "${SKIP_NOTARIZE:-0}" != "1" ]; then
+  xcrun notarytool submit "$DMG" --keychain-profile "$NOTARY_PROFILE" --wait
   xcrun stapler staple "$DMG"
 fi
 
