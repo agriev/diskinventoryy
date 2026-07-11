@@ -114,35 +114,45 @@ struct RootView: View {
                 registry.discard(id)
             }
         }
-        .fileImporter(
-            isPresented: $showFolderImporter,
-            allowedContentTypes: [.folder],
-            allowsMultipleSelection: false
-        ) { result in
-            if case let .success(urls) = result, let url = urls.first {
-                openScan(url: url)
+        // Each presenter lives on its own background host: SwiftUI
+        // only honours ONE fileImporter/fileExporter per view — stacking
+        // them directly meant the .dscan importer silently swallowed
+        // the folder importer, breaking the Open Folder button.
+        .background(
+            Color.clear.fileImporter(
+                isPresented: $showFolderImporter,
+                allowedContentTypes: [.folder],
+                allowsMultipleSelection: false
+            ) { result in
+                if case let .success(urls) = result, let url = urls.first {
+                    openScan(url: url)
+                }
             }
-        }
-        .fileImporter(
-            isPresented: $showSavedScanImporter,
-            allowedContentTypes: [.diskInventoryScan, .json],
-            allowsMultipleSelection: false
-        ) { result in
-            if case let .success(urls) = result, let url = urls.first {
-                loadSavedScan(from: url)
+        )
+        .background(
+            Color.clear.fileImporter(
+                isPresented: $showSavedScanImporter,
+                allowedContentTypes: [.diskInventoryScan, .json],
+                allowsMultipleSelection: false
+            ) { result in
+                if case let .success(urls) = result, let url = urls.first {
+                    loadSavedScan(from: url)
+                }
             }
-        }
-        .fileExporter(
-            isPresented: $showSavedScanExporter,
-            document: savedScanDocument,
-            contentType: .diskInventoryScan,
-            defaultFilename: savedScanFilename
-        ) { result in
-            if case let .failure(error) = result {
-                saveErrorMessage = "Couldn't save scan: \(error.localizedDescription)"
+        )
+        .background(
+            Color.clear.fileExporter(
+                isPresented: $showSavedScanExporter,
+                document: savedScanDocument,
+                contentType: .diskInventoryScan,
+                defaultFilename: savedScanFilename
+            ) { result in
+                if case let .failure(error) = result {
+                    saveErrorMessage = "Couldn't save scan: \(error.localizedDescription)"
+                }
+                savedScanDocument = nil
             }
-            savedScanDocument = nil
-        }
+        )
         .alert(
             "Save scan failed",
             isPresented: Binding(

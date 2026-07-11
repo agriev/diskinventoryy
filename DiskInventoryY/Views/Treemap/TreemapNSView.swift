@@ -203,7 +203,10 @@ final class TreemapNSView: NSView, NSDraggingSource {
             guard cell.rect.intersects(dirtyRect) else { continue }
             guard let node = nodeIndex[cell.nodeID] else { continue }
 
-            let isLeafCell = !node.isContainer
+            // Packages scanned without descendIntoPackages carry their
+            // totals but no children — draw them as colored leaves of
+            // their kind (DIX does the same), not as empty dir frames.
+            let isLeafCell = !node.isContainer || node.children.isEmpty
             let dimmed = highlight != nil && (!isLeafCell || node.kindID != highlight)
 
             if isLeafCell {

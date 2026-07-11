@@ -43,6 +43,20 @@
   header img.icon { width: 144px; height: 144px; image-rendering: -webkit-optimize-contrast; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.15)); }
   header h1 { font-size: 44px; margin: 24px 0 8px; font-weight: 700; letter-spacing: -0.02em; }
   header p.tagline { font-size: 19px; color: var(--muted); margin: 0 0 24px; }
+  figure.hero { margin: 0 0 56px; }
+  figure.hero img {
+    display: block;
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  }
+  figure.hero figcaption {
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 12px;
+  }
   .download {
     display: inline-flex;
     align-items: center;
@@ -116,6 +130,11 @@
     </div>
   </header>
 
+  <figure class="hero">
+    <img src="screenshot.png" alt="DiskInventoryY treemap: every file is a cushion-shaded rectangle sized by disk usage, colored by kind with the classic Disk Inventory X palette" loading="lazy">
+    <figcaption>Every file is a cushion-shaded cell sized by its disk usage — the classic Disk Inventory X palette, assigned by kind size rank.</figcaption>
+  </figure>
+
   <section>
     <h2>What it does</h2>
     <div class="grid">
@@ -123,6 +142,11 @@
         <div class="symbol">🗺️</div>
         <h3>Squarified treemap</h3>
         <p>Every file shown as a colored cell sized by how much disk it takes. Color-by-kind (images, code, video, …) so big offenders pop out instantly.</p>
+      </div>
+      <div class="feature">
+        <div class="symbol">🎨</div>
+        <h3>The authentic DIX palette</h3>
+        <p>Colors ported verbatim from Disk Inventory X's source and assigned by size rank — the dominant kind is always blue, the runner-up red. Feels like home.</p>
       </div>
       <div class="feature">
         <div class="symbol">🔍</div>
@@ -171,7 +195,7 @@
 
   <section>
     <h2>Origin</h2>
-    <p>DiskInventoryY is a from-scratch Swift/SwiftUI rewrite of <a href="https://gitlab.com/tderlien/disk-inventory-x">Disk Inventory X</a> by Tjark Derlien, originally released in 2003. The squarified treemap layout follows the algorithm popularized by <a href="https://kdirstat.sourceforge.net/">KDirStat</a> (Stefan Hundhammer) and described in Bruls / Huijsen / van Wijk's 2000 paper.</p>
+    <p>DiskInventoryY is a from-scratch Swift/SwiftUI rewrite of <a href="https://www.derlien.com/">Disk Inventory X</a> by Tjark Derlien — the beloved macOS disk-usage utility originally released in 2003 (<a href="https://gitlab.com/tderlien/disk-inventory-x">source on GitLab</a>). The treemap color palette is ported verbatim from DIX's <code>FileTypeColors.m</code>, and the squarified layout follows the algorithm popularized by <a href="https://kdirstat.sourceforge.net/">KDirStat</a> (Stefan Hundhammer), described in Bruls / Huijsen / van Wijk's 2000 paper. Cushion shading follows van Wijk &amp; van de Wetering's 1999 INFOVIS paper.</p>
   </section>
 
   <section>
